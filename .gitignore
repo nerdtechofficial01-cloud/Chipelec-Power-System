@@ -1,0 +1,10 @@
+# Node dependencies — never commit these
+backend/node_modules/
+
+# Environment files — never commit secrets
+backend/.env
+backend/ca.pem
+
+# OS artifacts
+.DS_Store
+Thumbs.db
