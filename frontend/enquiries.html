@@ -391,26 +391,6 @@
     <script type="module" src="js/enquiries.js"></script>
 
     <script>
-        // Load new enquiry count for sidebar badge
-        (async function loadNewCount() {
-            try {
-                const t = localStorage.getItem('token');
-                if (!t) return;
-                const res = await fetch(
-                    'https://chipelec-power-system-production.up.railway.app/api/dashboard',
-                    { headers: { Authorization: 'Bearer ' + t } }
-                );
-                if (!res.ok) return;
-                const data = await res.json();
-                const count = data.data && data.data.new_enquiries;
-                if (count && count > 0) {
-                    const badge = document.getElementById('sidebarNewCount');
-                    const topBadge = document.getElementById('topbarNewCount');
-                    if (badge) { badge.textContent = count; badge.style.display = 'inline-block'; }
-                    if (topBadge) { topBadge.textContent = count; topBadge.style.display = 'inline-flex'; }
-                }
-            } catch(e) { /* silent */ }
-        })();
     </script>
 
 </body>
