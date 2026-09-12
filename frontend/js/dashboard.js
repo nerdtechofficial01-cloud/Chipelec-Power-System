@@ -4,21 +4,30 @@ import { collection, query, orderBy, limit, getDocs } from "https://www.gstatic.
 
 async function loadDashboard() {
     try {
-        // Fetch all 4 counts in parallel from Firestore (uses Aggregation API — free)
-        const [products, customers, brands, installations] = await Promise.all([
+        // Fetch all counts in parallel from Firestore (uses Aggregation API — free)
+        const [products, customers, brands, installations, newEnquiries] = await Promise.all([
             countDocs("products"),
             countDocs("customers"),
             countDocs("brands"),
-            countDocs("installations")
+            countDocs("installations"),
+            countDocsWhere("enquiries", "status", "==", "New")
         ]);
 
         animateValue("totalProducts",      0, products,      1000);
         animateValue("totalBrands",        0, brands,        1000);
         animateValue("totalCustomers",     0, customers,     1000);
         animateValue("totalInstallations", 0, installations, 1000);
+        animateValue("totalNewEnquiries",  0, newEnquiries,  1000);
 
-        // Load recent activity from Firestore
-        await loadRecentActivity();
+        // Update sidebar badge for new enquiries
+        const badge = document.getElementById("sidebarNewCount");
+        if (badge) {
+            if (newEnquiries > 0) { badge.textContent = newEnquiries; badge.style.display = "inline"; }
+            else { badge.style.display = "none"; }
+        }
+
+        // Load recent activity, enquiries table, and low stock
+        await Promise.all([loadRecentActivity(), loadRecentEnquiries(), loadLowStock()]);
         renderChart();
 
     } catch (err) {
@@ -111,6 +120,57 @@ function _timeAgo(date) {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
+}
+
+async function loadRecentEnquiries() {
+    const tbody = document.getElementById("recentEnquiriesList");
+    if (!tbody) return;
+    try {
+        const snap = await getDocs(query(collection(db, "enquiries"), orderBy("createdAt", "desc"), limit(5)));
+        if (snap.empty) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:15px;color:#64748b;">No enquiries yet.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = snap.docs.map(d => {
+            const e = d.data();
+            const date = e.createdAt?.toDate ? e.createdAt.toDate().toLocaleDateString('en-IN') : '-';
+            return `<tr>
+                <td style="padding:10px;font-weight:500;">${e.full_name || '-'}</td>
+                <td style="padding:10px;">${e.subject || e.message?.substring(0,40) || '-'}</td>
+                <td style="padding:10px;color:#64748b;font-size:13px;">${date}</td>
+            </tr>`;
+        }).join('');
+    } catch (err) {
+        console.warn("Could not load recent enquiries:", err);
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:15px;color:#64748b;">Unavailable</td></tr>`;
+    }
+}
+
+async function loadLowStock() {
+    const tbody = document.getElementById("lowStockList");
+    if (!tbody) return;
+    try {
+        const snap = await getDocs(collection(db, "products"));
+        const lowStock = snap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(p => (p.stock_quantity || 0) < 10)
+            .sort((a, b) => (a.stock_quantity || 0) - (b.stock_quantity || 0))
+            .slice(0, 5);
+
+        if (lowStock.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;padding:15px;color:#059669;">All products well-stocked ✓</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = lowStock.map(p => `
+            <tr>
+                <td style="padding:10px;font-weight:500;">${p.product_name}</td>
+                <td style="padding:10px;font-weight:700;color:${p.stock_quantity < 5 ? '#e11d48' : '#f59e0b'};">${p.stock_quantity}</td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.warn("Could not load low stock:", err);
+        tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;padding:15px;color:#64748b;">Unavailable</td></tr>`;
+    }
 }
 
 function renderChart() {
