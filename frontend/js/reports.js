@@ -1,17 +1,15 @@
-// Note: token is handled in auth.js
+// Phase 15 — reports.js migrated to Firestore
+import { fetchAll } from "./firebase-config.js";
 
 let salesData = [];
 let customerData = [];
 let maintenanceData = [];
 let inventoryData = [];
 
-// Load data initially
 document.addEventListener("DOMContentLoaded", () => {
-    // Initial tab load
     showSalesReport();
 });
 
-// PDF Export helper using jsPDF autoTable
 function downloadPDF(title, columns, dataRows, filename) {
     if (!window.jspdf) {
         if(window.showToast) window.showToast("jsPDF library not loaded", "error");
@@ -20,304 +18,309 @@ function downloadPDF(title, columns, dataRows, filename) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Header
     doc.setFontSize(18);
-    doc.setTextColor(30, 41, 59); // var(--text-primary)
+    doc.setTextColor(30, 41, 59);
     doc.text(`CHIPELEC POWER SYSTEM - ${title}`, 14, 22);
     
     doc.setFontSize(11);
-    doc.setTextColor(100, 116, 139); // var(--text-secondary)
+    doc.setTextColor(100, 116, 139);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-    
-    // Table
+
     doc.autoTable({
-        startY: 40,
+        startY: 36,
         head: [columns],
         body: dataRows,
         theme: 'grid',
-        headStyles: { fillColor: [99, 102, 241] }, // var(--primary)
-        styles: { fontSize: 9, cellPadding: 3 }
+        headStyles: { fillColor: [99, 102, 241], textColor: 255, fontSize: 10 },
+        bodyStyles: { fontSize: 10, textColor: 50 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { top: 36 }
     });
     
-    doc.save(`${filename}.pdf`);
-    if(window.showToast) window.showToast(`Exported ${filename}.pdf successfully`);
+    doc.save(filename);
 }
 
-// Excel Export helper using SheetJS
-function downloadExcel(dataArray, filename) {
-    if (!window.XLSX) {
-        if(window.showToast) window.showToast("SheetJS library not loaded", "error");
-        return;
-    }
-    
-    const ws = XLSX.utils.json_to_sheet(dataArray);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Report");
-    XLSX.writeFile(wb, `${filename}.xlsx`);
-    
-    if(window.showToast) window.showToast(`Exported ${filename}.xlsx successfully`);
-}
-
-// --- Sales Report ---
+// ----------------------
+// SALES REPORT
+// ----------------------
 async function showSalesReport() {
+    switchTab('sales-tab');
+    document.getElementById("reportContent").innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner"></div><p>Loading Sales Data...</p></div>';
+    
     try {
-        const res = await fetch(window.API_BASE_URL + "/sales", {
-            headers: { Authorization: "Bearer " + token }
-        });
-        const result = await res.json();
-        salesData = result.data || [];
+        salesData = await fetchAll("sales");
         
-        let totalRev = 0;
-        let html = "";
+        let html = `
+        <div class="report-header">
+            <h3>Sales Overview</h3>
+            <button class="btn btn-primary" onclick="exportSalesPDF()"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Total (₹)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
         
         if (salesData.length === 0) {
-            html = `<tr><td colspan="6" style="text-align: center; padding: 30px;">No sales data available.</td></tr>`;
+            html += `<tr><td colspan="6" style="text-align:center;">No sales data available.</td></tr>`;
         } else {
             salesData.forEach(s => {
-                totalRev += Number(s.total_amount) || 0;
-                let d = s.sale_date;
-                if(d && d.includes('T')) d = d.split('T')[0];
-                
-                let badge = "badge-success";
-                if(s.payment_status === "Pending") badge = "badge-warning";
-                else if (s.payment_status === "Partial") badge = "badge-info";
-                
+                const sDate = s.sale_date?.toDate ? s.sale_date.toDate().toLocaleDateString('en-IN') : (s.sale_date ? String(s.sale_date).split('T')[0] : '-');
                 html += `
                 <tr>
-                    <td>${d || '-'}</td>
-                    <td style="font-weight:500">${s.customer_name || '-'}</td>
+                    <td>${sDate}</td>
+                    <td>${s.customer_name || '-'}</td>
                     <td>${s.product_name || '-'}</td>
                     <td>${s.quantity}</td>
-                    <td style="font-weight:600">₹${(s.total_amount || 0).toLocaleString()}</td>
-                    <td><span class="badge-status ${badge}">${s.payment_status || 'Unknown'}</span></td>
+                    <td>₹${Number(s.total_amount||0).toLocaleString()}</td>
+                    <td>${s.payment_status}</td>
                 </tr>`;
             });
         }
         
-        document.getElementById("salesTableBody").innerHTML = html;
-        document.getElementById("totalSales").textContent = salesData.length;
-        document.getElementById("totalRevenue").textContent = `₹${totalRev.toLocaleString()}`;
-        document.getElementById("avgTransaction").textContent = salesData.length ? `₹${Math.round(totalRev / salesData.length).toLocaleString()}` : "₹0";
+        html += `</tbody></table>`;
+        document.getElementById("reportContent").innerHTML = html;
         
-    } catch(e) {
-        console.error(e);
-        document.getElementById("salesTableBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:red">Failed to load data.</td></tr>`;
+    } catch(err) {
+        console.error(err);
+        document.getElementById("reportContent").innerHTML = '<div style="color:red;padding:20px;">Failed to load sales report.</div>';
     }
 }
 
-window.exportSalesPDF = function() {
-    const columns = ["Date", "Customer Name", "Product", "Qty", "Amount", "Status"];
+function exportSalesPDF() {
+    const columns = ["Date", "Customer", "Product", "Qty", "Total (Rs)", "Status"];
     const rows = salesData.map(s => {
-        let d = s.sale_date;
-        if(d && d.includes('T')) d = d.split('T')[0];
-        return [d || '-', s.customer_name || '-', s.product_name || '-', s.quantity, `Rs ${s.total_amount}`, s.payment_status];
+        const sDate = s.sale_date?.toDate ? s.sale_date.toDate().toLocaleDateString('en-IN') : (s.sale_date ? String(s.sale_date).split('T')[0] : '-');
+        return [
+            sDate,
+            s.customer_name || '-',
+            s.product_name || '-',
+            s.quantity,
+            s.total_amount,
+            s.payment_status
+        ];
     });
-    downloadPDF("Sales Report", columns, rows, "sales_report");
-};
+    downloadPDF("Sales Report", columns, rows, "sales_report.pdf");
+}
 
-window.exportSalesExcel = function() {
-    const formatted = salesData.map(s => {
-        let d = s.sale_date;
-        if(d && d.includes('T')) d = d.split('T')[0];
-        return {
-            "Date": d,
-            "Customer Name": s.customer_name,
-            "Product": s.product_name,
-            "Quantity": s.quantity,
-            "Total Amount": s.total_amount,
-            "Payment Status": s.payment_status
-        };
-    });
-    downloadExcel(formatted, "sales_report");
-};
-
-// --- Customer Report ---
+// ----------------------
+// CUSTOMER REPORT
+// ----------------------
 async function showCustomerReport() {
+    switchTab('customers-tab');
+    document.getElementById("reportContent").innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner"></div><p>Loading Customer Data...</p></div>';
+    
     try {
-        const res = await fetch(window.API_BASE_URL + "/customers", {
-            headers: { Authorization: "Bearer " + token }
-        });
-        const result = await res.json();
-        customerData = result.data || [];
+        customerData = await fetchAll("customers");
         
-        let html = "";
+        let html = `
+        <div class="report-header">
+            <h3>Customer Directory</h3>
+            <button class="btn btn-primary" onclick="exportCustomerPDF()"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>City</th>
+                    <th>State</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        
         if (customerData.length === 0) {
-            html = `<tr><td colspan="5" style="text-align: center; padding: 30px;">No customer data available.</td></tr>`;
+            html += `<tr><td colspan="5" style="text-align:center;">No customer data available.</td></tr>`;
         } else {
             customerData.forEach(c => {
                 html += `
                 <tr>
-                    <td style="font-weight:500">${c.full_name}</td>
+                    <td>${c.full_name || '-'}</td>
                     <td>${c.phone || '-'}</td>
                     <td>${c.email || '-'}</td>
                     <td>${c.city || '-'}</td>
-                    <td><span class="badge-status badge-primary">Active</span></td>
+                    <td>${c.state || '-'}</td>
                 </tr>`;
             });
         }
         
-        document.getElementById("customerTableBody").innerHTML = html;
-        document.getElementById("totalCustomers").textContent = customerData.length;
-        document.getElementById("activeCustomers").textContent = customerData.length;
-    } catch(e) {
-        console.error(e);
-        document.getElementById("customerTableBody").innerHTML = `<tr><td colspan="5" style="text-align:center;color:red">Failed to load data.</td></tr>`;
+        html += `</tbody></table>`;
+        document.getElementById("reportContent").innerHTML = html;
+        
+    } catch(err) {
+        console.error(err);
+        document.getElementById("reportContent").innerHTML = '<div style="color:red;padding:20px;">Failed to load customer report.</div>';
     }
 }
 
-window.exportCustomerPDF = function() {
-    const columns = ["Customer Name", "Phone", "Email", "City", "State"];
-    const rows = customerData.map(c => [c.full_name, c.phone || '-', c.email || '-', c.city || '-', c.state || '-']);
-    downloadPDF("Customer Report", columns, rows, "customer_report");
-};
-
-window.exportCustomerExcel = function() {
-    downloadExcel(customerData, "customer_report");
-};
-
-// --- Maintenance Report ---
-async function showMaintenanceReport() {
-    try {
-        const res = await fetch(window.API_BASE_URL + "/maintenance", {
-            headers: { Authorization: "Bearer " + token }
-        });
-        const result = await res.json();
-        maintenanceData = result.data || [];
-        
-        let completed = 0;
-        let pending = 0;
-        let html = "";
-        
-        if (maintenanceData.length === 0) {
-            html = `<tr><td colspan="6" style="text-align: center; padding: 30px;">No maintenance data available.</td></tr>`;
-        } else {
-            maintenanceData.forEach(m => {
-                if(m.status === "Completed") completed++;
-                else pending++;
-                
-                let md = m.maintenance_date;
-                if(md && md.includes('T')) md = md.split('T')[0];
-                
-                let badge = "badge-warning";
-                if (m.status === "Completed") badge = "badge-success";
-                else if (m.status === "Pending") badge = "badge-info";
-                
-                const cName = m.customer_name || m.full_name || 'Unknown';
-                
-                html += `
-                <tr>
-                    <td>${md || '-'}</td>
-                    <td style="font-weight:500">${cName}</td>
-                    <td>${m.product_name || '-'}</td>
-                    <td>${m.maintenance_type || '-'}</td>
-                    <td><span class="badge-status ${badge}">${m.status || 'Pending'}</span></td>
-                    <td>${m.technician_name || 'Unassigned'}</td>
-                </tr>`;
-            });
-        }
-        
-        document.getElementById("maintenanceTableBody").innerHTML = html;
-        document.getElementById("totalMaintenance").textContent = maintenanceData.length;
-        document.getElementById("completedMaintenance").textContent = completed;
-        document.getElementById("pendingMaintenance").textContent = pending;
-    } catch(e) {
-        console.error(e);
-        document.getElementById("maintenanceTableBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:red">Failed to load data.</td></tr>`;
-    }
+function exportCustomerPDF() {
+    const columns = ["Name", "Phone", "Email", "City", "State"];
+    const rows = customerData.map(c => [
+        c.full_name || '-',
+        c.phone || '-',
+        c.email || '-',
+        c.city || '-',
+        c.state || '-'
+    ]);
+    downloadPDF("Customer Directory", columns, rows, "customer_report.pdf");
 }
 
-window.exportMaintenancePDF = function() {
-    const columns = ["Date", "Customer", "Product", "Type", "Status", "Technician"];
-    const rows = maintenanceData.map(m => {
-        let md = m.maintenance_date;
-        if(md && md.includes('T')) md = md.split('T')[0];
-        const cName = m.customer_name || m.full_name || '-';
-        return [md || '-', cName, m.product_name || '-', m.maintenance_type || '-', m.status || 'Pending', m.technician_name || '-'];
-    });
-    downloadPDF("Maintenance Report", columns, rows, "maintenance_report");
-};
-
-window.exportMaintenanceExcel = function() {
-    const formatted = maintenanceData.map(m => {
-        let md = m.maintenance_date;
-        if(md && md.includes('T')) md = md.split('T')[0];
-        return {
-            "Date": md,
-            "Customer": m.customer_name || m.full_name,
-            "Product": m.product_name,
-            "Maintenance Type": m.maintenance_type,
-            "Status": m.status,
-            "Technician": m.technician_name
-        };
-    });
-    downloadExcel(formatted, "maintenance_report");
-};
-
-// --- Inventory Report ---
+// ----------------------
+// INVENTORY REPORT
+// ----------------------
 async function showInventoryReport() {
+    switchTab('inventory-tab');
+    document.getElementById("reportContent").innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner"></div><p>Loading Inventory Data...</p></div>';
+    
     try {
-        const res = await fetch(window.API_BASE_URL + "/products", {
-            headers: { Authorization: "Bearer " + token }
-        });
-        const result = await res.json();
-        inventoryData = result.data || [];
+        inventoryData = await fetchAll("products");
         
-        let lowStock = 0;
-        let totalVal = 0;
-        let html = "";
+        let html = `
+        <div class="report-header">
+            <h3>Inventory Stock Level</h3>
+            <button class="btn btn-primary" onclick="exportInventoryPDF()"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Price (₹)</th>
+                    <th>Stock Qty</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
         
         if (inventoryData.length === 0) {
-            html = `<tr><td colspan="7" style="text-align: center; padding: 30px;">No inventory data available.</td></tr>`;
+            html += `<tr><td colspan="5" style="text-align:center;">No inventory data available.</td></tr>`;
         } else {
             inventoryData.forEach(p => {
-                if (p.stock_quantity < 10) lowStock++;
-                const val = (p.price * p.stock_quantity) || 0;
-                totalVal += val;
-                
-                let stockStatus = p.stock_quantity < 10 ? '<span class="badge-status badge-error">Low Stock</span>' : '<span class="badge-status badge-success">In Stock</span>';
-                
+                const stockColor = p.stock_quantity < 10 ? 'color:red;font-weight:bold;' : 'color:green;font-weight:bold;';
                 html += `
                 <tr>
-                    <td style="font-weight:500">${p.product_name}</td>
+                    <td>${p.product_name}</td>
                     <td>${p.brand_name || '-'}</td>
                     <td>${p.category_name || '-'}</td>
-                    <td style="font-weight:600; color:${p.stock_quantity < 10 ? 'var(--accent-rose)' : 'inherit'}">${p.stock_quantity}</td>
-                    <td>₹${(p.price || 0).toLocaleString()}</td>
-                    <td>₹${val.toLocaleString()}</td>
-                    <td>${stockStatus}</td>
+                    <td>₹${Number(p.price).toLocaleString()}</td>
+                    <td style="${stockColor}">${p.stock_quantity}</td>
                 </tr>`;
             });
         }
         
-        document.getElementById("inventoryTableBody").innerHTML = html;
-        document.getElementById("reportTotalProducts").textContent = inventoryData.length;
-        document.getElementById("lowStockItems").textContent = lowStock;
-        document.getElementById("totalInventoryValue").textContent = `₹${totalVal.toLocaleString()}`;
-    } catch(e) {
-        console.error(e);
-        document.getElementById("inventoryTableBody").innerHTML = `<tr><td colspan="7" style="text-align:center;color:red">Failed to load data.</td></tr>`;
+        html += `</tbody></table>`;
+        document.getElementById("reportContent").innerHTML = html;
+        
+    } catch(err) {
+        console.error(err);
+        document.getElementById("reportContent").innerHTML = '<div style="color:red;padding:20px;">Failed to load inventory report.</div>';
     }
 }
 
-window.exportInventoryPDF = function() {
-    const columns = ["Product Name", "Brand", "Category", "Stock", "Unit Price", "Total Value"];
-    const rows = inventoryData.map(p => {
-        const val = p.price * p.stock_quantity;
-        return [p.product_name, p.brand_name || '-', p.category_name || '-', p.stock_quantity, `Rs ${p.price}`, `Rs ${val}`];
-    });
-    downloadPDF("Inventory Report", columns, rows, "inventory_report");
-};
+function exportInventoryPDF() {
+    const columns = ["Product", "Brand", "Category", "Price (Rs)", "Stock"];
+    const rows = inventoryData.map(p => [
+        p.product_name,
+        p.brand_name || '-',
+        p.category_name || '-',
+        p.price,
+        p.stock_quantity
+    ]);
+    downloadPDF("Inventory Stock Report", columns, rows, "inventory_report.pdf");
+}
 
-window.exportInventoryExcel = function() {
-    const formatted = inventoryData.map(p => {
-        return {
-            "Product Name": p.product_name,
-            "Brand": p.brand_name,
-            "Category": p.category_name,
-            "Stock Quantity": p.stock_quantity,
-            "Unit Price": p.price,
-            "Total Value": p.price * p.stock_quantity
-        };
+// ----------------------
+// MAINTENANCE REPORT
+// ----------------------
+async function showMaintenanceReport() {
+    switchTab('maintenance-tab');
+    document.getElementById("reportContent").innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner"></div><p>Loading Maintenance Data...</p></div>';
+    
+    try {
+        maintenanceData = await fetchAll("maintenance");
+        
+        let html = `
+        <div class="report-header">
+            <h3>Maintenance Records</h3>
+            <button class="btn btn-primary" onclick="exportMaintenancePDF()"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Type</th>
+                    <th>Technician</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        if (maintenanceData.length === 0) {
+            html += `<tr><td colspan="6" style="text-align:center;">No maintenance records available.</td></tr>`;
+        } else {
+            maintenanceData.forEach(m => {
+                const mDate = m.maintenance_date?.toDate ? m.maintenance_date.toDate().toLocaleDateString('en-IN') : (m.maintenance_date ? String(m.maintenance_date).split('T')[0] : '-');
+                html += `
+                <tr>
+                    <td>${mDate}</td>
+                    <td>${m.customer_name || '-'}</td>
+                    <td>${m.product_name || '-'}</td>
+                    <td>${m.maintenance_type || '-'}</td>
+                    <td>${m.technician_name || '-'}</td>
+                    <td>${m.status || 'Pending'}</td>
+                </tr>`;
+            });
+        }
+        
+        html += `</tbody></table>`;
+        document.getElementById("reportContent").innerHTML = html;
+        
+    } catch(err) {
+        console.error(err);
+        document.getElementById("reportContent").innerHTML = '<div style="color:red;padding:20px;">Failed to load maintenance report.</div>';
+    }
+}
+
+function exportMaintenancePDF() {
+    const columns = ["Date", "Customer", "Product", "Type", "Technician", "Status"];
+    const rows = maintenanceData.map(m => {
+        const mDate = m.maintenance_date?.toDate ? m.maintenance_date.toDate().toLocaleDateString('en-IN') : (m.maintenance_date ? String(m.maintenance_date).split('T')[0] : '-');
+        return [
+            mDate,
+            m.customer_name || '-',
+            m.product_name || '-',
+            m.maintenance_type || '-',
+            m.technician_name || '-',
+            m.status || 'Pending'
+        ];
     });
-    downloadExcel(formatted, "inventory_report");
-};
+    downloadPDF("Maintenance Report", columns, rows, "maintenance_report.pdf");
+}
+
+function switchTab(activeId) {
+    document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(activeId).classList.add('active');
+}
+
+window.showSalesReport = showSalesReport;
+window.showCustomerReport = showCustomerReport;
+window.showInventoryReport = showInventoryReport;
+window.showMaintenanceReport = showMaintenanceReport;
+window.exportSalesPDF = exportSalesPDF;
+window.exportCustomerPDF = exportCustomerPDF;
+window.exportInventoryPDF = exportInventoryPDF;
+window.exportMaintenancePDF = exportMaintenancePDF;

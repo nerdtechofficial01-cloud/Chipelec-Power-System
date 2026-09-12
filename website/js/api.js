@@ -1,78 +1,57 @@
-// Base URL for API requests
-const hostname = window.location.hostname;
-const API_BASE_URL = (hostname === "localhost" || hostname === "127.0.0.1") 
-    ? "http://localhost:5000/api" 
-    : "https://chipelec-power-system-production.up.railway.app/api";
-
-if (!API_BASE_URL || API_BASE_URL === "undefined") {
-    console.error("CRITICAL ERROR: API_BASE_URL is missing or undefined.");
-}
+import {
+  customerRegister,
+  customerLogin,
+  customerLogout,
+  getCustomerProfile,
+  updateCustomerProfile,
+  changeCustomerPassword,
+  getCustomerDashboardStats,
+  getMyQuotations,
+  getAllProducts,
+  getProductById,
+  bookInstallation,
+  getMyInstallations,
+  raiseServiceRequest,
+  getMyServiceRequests,
+  isCustomerSignedIn
+} from "./firebase-config.js";
 
 // ======================
-// AUTH HELPERS
+// AUTH HELPERS (Legacy compatible wrappers)
 // ======================
+window.getCustomerToken = function() {
+  return localStorage.getItem('customerToken') || localStorage.getItem('firebase-token-placeholder');
+};
 
-function getCustomerToken() {
-  return localStorage.getItem('customerToken');
-}
-
-function getCustomerData() {
-  const data = localStorage.getItem('customerData');
+window.getCustomerData = function() {
+  const data = localStorage.getItem('customerData') || localStorage.getItem('customer');
   return data ? JSON.parse(data) : null;
-}
+};
 
-function isCustomerLoggedIn() {
-  return !!getCustomerToken();
-}
+window.isCustomerLoggedIn = function() {
+  return isCustomerSignedIn() || !!window.getCustomerToken();
+};
 
-function getAuthHeaders() {
-  const token = getCustomerToken();
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) {
-    headers['Authorization'] = 'Bearer ' + token;
-  }
-  return headers;
-}
+window.customerLogout = async function() {
+  await customerLogout();
+};
 
-function customerLogout() {
-  localStorage.removeItem('customerToken');
-  localStorage.removeItem('customerData');
-  window.location.href = 'login.html';
-}
-
-function requireCustomerLogin() {
-  if (!isCustomerLoggedIn()) {
+window.requireCustomerLogin = function() {
+  if (!window.isCustomerLoggedIn()) {
     window.location.href = 'login.html';
     return false;
   }
   return true;
-}
-
-// Utility to handle fetch errors
-async function handleResponse(response) {
-  if (response.status === 401 || response.status === 403) {
-    throw new Error("This service requires authentication. Please login to continue.");
-  }
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-}
+};
 
 // ======================
 // CUSTOMER AUTH API
 // ======================
-
 const CustomerAuthAPI = {
   register: async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/customer/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return await handleResponse(res);
+      const res = await customerRegister(data);
+      return { success: true, user: res };
     } catch (error) {
       console.error("Error registering:", error);
       throw error;
@@ -80,23 +59,24 @@ const CustomerAuthAPI = {
   },
   login: async (email, password) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/customer/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      return await handleResponse(res);
+      const res = await customerLogin(email, password);
+      // Ensure local storage is updated so old UI code still works
+      localStorage.setItem('customerToken', 'firebase-token-placeholder');
+      localStorage.setItem('customerData', JSON.stringify(res));
+      localStorage.setItem('customer', JSON.stringify(res));
+      return { success: true, user: res };
     } catch (error) {
       console.error("Error logging in:", error);
-      throw error;
+      let errorMsg = error.message;
+      if (errorMsg.includes('auth/invalid-credential')) errorMsg = "Invalid email or password.";
+      if (errorMsg.includes('auth/user-not-found')) errorMsg = "User not found.";
+      throw new Error(errorMsg);
     }
   },
   getProfile: async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/customer/profile`, {
-        headers: getAuthHeaders()
-      });
-      return await handleResponse(res);
+      const profile = await getCustomerProfile();
+      return { success: true, data: profile };
     } catch (error) {
       console.error("Error fetching profile:", error);
       throw error;
@@ -104,12 +84,13 @@ const CustomerAuthAPI = {
   },
   updateProfile: async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/customer/profile`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data)
-      });
-      return await handleResponse(res);
+      await updateCustomerProfile(data);
+      // Update local storage so UI reflects immediately
+      let cur = window.getCustomerData() || {};
+      const updated = { ...cur, ...data };
+      localStorage.setItem('customerData', JSON.stringify(updated));
+      localStorage.setItem('customer', JSON.stringify(updated));
+      return { success: true, message: "Profile updated successfully" };
     } catch (error) {
       console.error("Error updating profile:", error);
       throw error;
@@ -117,64 +98,43 @@ const CustomerAuthAPI = {
   },
   changePassword: async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/customer/change-password`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data)
-      });
-      return await handleResponse(res);
+      await changeCustomerPassword(data.current_password, data.new_password);
+      return { success: true, message: "Password updated successfully" };
     } catch (error) {
       console.error("Error changing password:", error);
-      throw error;
+      let msg = error.message;
+      if (msg.includes('auth/invalid-credential')) msg = "Current password is incorrect. Please sign out and sign in again if this persists.";
+      throw new Error(msg);
     }
   },
   getDashboardStats: async () => {
     try {
-      const customerStr = localStorage.getItem('customer');
-      if (!customerStr) throw new Error("Not logged in");
-      const customer = JSON.parse(customerStr);
-      const headers = getAuthHeaders();
-      
-      const [ordersRes, instRes, srvRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/orders`, { headers }).then(r => r.json()).catch(() => ({data: []})),
-          fetch(`${API_BASE_URL}/installations`, { headers }).then(r => r.json()).catch(() => ({data: []})),
-          fetch(`${API_BASE_URL}/service-requests`, { headers }).then(r => r.json()).catch(() => ({data: []}))
-      ]);
-      
-      const orders = (ordersRes.data || []).filter(o => o.customer_name === customer.full_name);
-      const installations = (instRes.data || []).filter(i => i.customer_id === customer.id);
-      const services = (srvRes.data || []).filter(s => s.customer_id === customer.id);
-      
-      const myProducts = orders.length;
-      const activeInstallations = installations.filter(i => !['Completed', 'Cancelled'].includes(i.installation_status)).length;
-      const openComplaints = services.filter(s => !['Resolved', 'Cancelled'].includes(s.service_status)).length;
-      
-      const recentActivity = [
-          ...installations.map(i => ({ id: i.id, type: 'Installation', date: i.installation_date, status: i.installation_status })),
-          ...services.map(s => ({ id: s.id, type: 'Service Request', date: s.request_date, status: s.service_status }))
-      ].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 5);
-      
-      return {
-          success: true,
-          data: { myProducts, activeInstallations, openComplaints, recentActivity }
-      };
+      const stats = await getCustomerDashboardStats();
+      return { success: true, data: stats };
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       throw error;
     }
   },
   getQuotations: async () => {
-    // Railway backend frozen: simulate empty quotations since endpoint doesn't exist in production yet
-    return { success: true, data: [] };
+    try {
+      const quotes = await getMyQuotations();
+      return { success: true, data: quotes };
+    } catch (error) {
+      console.error("Error fetching quotations:", error);
+      throw error;
+    }
   }
 };
 
-// Product APIs
+// ======================
+// PRODUCT API
+// ======================
 const ProductAPI = {
   getAllProducts: async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/products`);
-      return await handleResponse(res);
+      const products = await getAllProducts();
+      return { success: true, data: products };
     } catch (error) {
       console.error("Error fetching products:", error);
       throw error;
@@ -182,8 +142,8 @@ const ProductAPI = {
   },
   getProductById: async (id) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/products/${id}`);
-      return await handleResponse(res);
+      const product = await getProductById(id);
+      return { success: true, data: product };
     } catch (error) {
       console.error("Error fetching product details:", error);
       throw error;
@@ -191,21 +151,14 @@ const ProductAPI = {
   }
 };
 
-// Installation API
+// ======================
+// INSTALLATION API
+// ======================
 const InstallationAPI = {
   bookInstallation: async (data) => {
     try {
-      const customerStr = localStorage.getItem('customer');
-      if(customerStr) {
-          const customer = JSON.parse(customerStr);
-          data.customer_id = customer.id;
-      }
-      const res = await fetch(`${API_BASE_URL}/installations`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data)
-      });
-      return await handleResponse(res);
+      const id = await bookInstallation(data);
+      return { success: true, message: "Installation booked successfully", id };
     } catch (error) {
       console.error("Error booking installation:", error);
       throw error;
@@ -213,16 +166,8 @@ const InstallationAPI = {
   },
   getInstallations: async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/installations`, {
-        headers: getAuthHeaders()
-      });
-      const data = await handleResponse(res);
-      const customerStr = localStorage.getItem('customer');
-      if (data.success && data.data && customerStr) {
-          const customer = JSON.parse(customerStr);
-          data.data = data.data.filter(i => i.customer_id === customer.id);
-      }
-      return data;
+      const installations = await getMyInstallations();
+      return { success: true, data: installations };
     } catch (error) {
       console.error("Error fetching installations:", error);
       throw error;
@@ -230,21 +175,14 @@ const InstallationAPI = {
   }
 };
 
-// Service Request API
+// ======================
+// SERVICE REQUEST API
+// ======================
 const ServiceAPI = {
   raiseRequest: async (data) => {
     try {
-      const customerStr = localStorage.getItem('customer');
-      if(customerStr) {
-          const customer = JSON.parse(customerStr);
-          data.customer_id = customer.id;
-      }
-      const res = await fetch(`${API_BASE_URL}/service-requests`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data)
-      });
-      return await handleResponse(res);
+      const id = await raiseServiceRequest(data);
+      return { success: true, message: "Service request raised successfully", id };
     } catch (error) {
       console.error("Error raising service request:", error);
       throw error;
@@ -252,16 +190,8 @@ const ServiceAPI = {
   },
   getServiceRequests: async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/service-requests`, {
-        headers: getAuthHeaders()
-      });
-      const data = await handleResponse(res);
-      const customerStr = localStorage.getItem('customer');
-      if (data.success && data.data && customerStr) {
-          const customer = JSON.parse(customerStr);
-          data.data = data.data.filter(s => s.customer_id === customer.id);
-      }
-      return data;
+      const requests = await getMyServiceRequests();
+      return { success: true, data: requests };
     } catch (error) {
       console.error("Error fetching service requests:", error);
       throw error;
@@ -269,6 +199,7 @@ const ServiceAPI = {
   }
 };
 
+// Expose legacy API to window
 window.api = {
   customerAuth: CustomerAuthAPI,
   products: ProductAPI,

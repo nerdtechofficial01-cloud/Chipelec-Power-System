@@ -1,10 +1,15 @@
-// Note: token and admin logic are handled in auth.js
+// Phase 15 — profile.js migrated to Firestore
+import { 
+    auth, updateDocById 
+} from "./firebase-config.js";
+import { 
+    updatePassword, EmailAuthProvider, reauthenticateWithCredential, updateProfile
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     // Basic Admin Display
     const admin = JSON.parse(localStorage.getItem("admin"));
     if (admin) {
-        // We use full_name if available, fallback to username
         const displayName = admin.full_name || admin.username || "Admin";
         const role = admin.role || "Administrator";
         
@@ -14,7 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
         
         document.getElementById("adminEmail").textContent = admin.email || "admin@chipelec.com";
         document.getElementById("viewEmail").value = admin.email || "admin@chipelec.com";
-        document.getElementById("editEmail").value = admin.email || "admin@chipelec.com";
+        // editEmail disabled to prevent out-of-sync Firebase Auth email
+        const ee = document.getElementById("editEmail");
+        if(ee) {
+            ee.value = admin.email || "admin@chipelec.com";
+            ee.readOnly = true;
+        }
         
         document.getElementById("viewRole").value = role;
     }
@@ -32,31 +42,34 @@ function cancelEdit() {
 
 async function saveProfile() {
     const newName = document.getElementById("editUsername").value;
-    const newEmail = document.getElementById("editEmail").value;
-    
-    if (!newName || !newEmail) {
-        if(window.showToast) window.showToast("Name and email are required", "warning");
+    if (!newName) {
+        if(window.showToast) window.showToast("Name is required", "warning");
         return;
     }
 
-    // In a real application, we would call an API endpoint like:
-    // await fetch(window.API_BASE_URL + "/admin/profile", { method: "PUT", body: ... })
-    // Since we don't have that endpoint guaranteed in the existing backend, we'll simulate success
-    // and update local storage directly as per the previous basic implementation.
-
     try {
-        const admin = JSON.parse(localStorage.getItem("admin")) || {};
-        admin.full_name = newName;
-        admin.username = newName; // Ensure backwards compatibility
-        admin.email = newEmail;
+        const user = auth.currentUser;
+        if (!user) throw new Error("Not logged in");
+
+        const adminData = JSON.parse(localStorage.getItem("admin")) || {};
         
-        localStorage.setItem("admin", JSON.stringify(admin));
+        // Update Firestore Document
+        await updateDocById("admins", user.uid, {
+            full_name: newName,
+            username: newName
+        });
+
+        // Update Auth Profile
+        await updateProfile(user, { displayName: newName });
+
+        // Update Local Storage
+        adminData.full_name = newName;
+        adminData.username = newName;
+        localStorage.setItem("admin", JSON.stringify(adminData));
         
         // Update DOM
         document.getElementById("adminUsername").textContent = newName;
         document.getElementById("viewUsername").value = newName;
-        document.getElementById("adminEmail").textContent = newEmail;
-        document.getElementById("viewEmail").value = newEmail;
         
         // Update Topbar
         const topbarName = document.getElementById("topbarAdminName");
@@ -69,7 +82,7 @@ async function saveProfile() {
         
     } catch(err) {
         console.error(err);
-        if(window.showToast) window.showToast("An error occurred", "error");
+        if(window.showToast) window.showToast("An error occurred: " + err.message, "error");
     }
 }
 
@@ -88,11 +101,34 @@ async function changePassword() {
         return;
     }
     
-    // Simulate API call
-    if(window.showToast) window.showToast("Password update endpoint not implemented in demo", "info");
-    
-    // Reset fields
-    document.getElementById("currentPassword").value = "";
-    document.getElementById("newPassword").value = "";
-    document.getElementById("confirmPassword").value = "";
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Not logged in");
+
+        // Reauthenticate
+        const credential = EmailAuthProvider.credential(user.email, current);
+        await reauthenticateWithCredential(user, credential);
+
+        // Update password
+        await updatePassword(user, newPass);
+
+        if(window.showToast) window.showToast("Password updated successfully!", "success");
+        
+        // Reset fields
+        document.getElementById("currentPassword").value = "";
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+
+    } catch (err) {
+        console.error("Password update error:", err);
+        let msg = "Failed to update password.";
+        if (err.code === 'auth/wrong-password') msg = "Incorrect current password.";
+        if (err.code === 'auth/weak-password') msg = "New password is too weak.";
+        if (window.showToast) window.showToast(msg, "error");
+    }
 }
+
+window.showEditForm = showEditForm;
+window.cancelEdit = cancelEdit;
+window.saveProfile = saveProfile;
+window.changePassword = changePassword;

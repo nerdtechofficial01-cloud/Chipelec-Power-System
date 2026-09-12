@@ -1,279 +1,180 @@
-// Note: token is handled in auth.js
+// Phase 10 — maintenance.js migrated to Firestore
+import { fetchAll, createDoc, updateDocById, deleteDocById, db } from "./firebase-config.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
 let editingMaintenance = null;
 let allMaintenance = [];
+let customersData = [];
+let productsData = [];
 
 async function loadMaintenance() {
     try {
-        const response = await fetch(window.API_BASE_URL + "/maintenance", {
-            headers: { Authorization: "Bearer " + token }
-        });
-
-        const result = await response.json();
-        allMaintenance = result.data || [];
+        allMaintenance = await fetchAll("maintenance");
         renderTable(allMaintenance);
     } catch (err) {
         console.error(err);
-        if(window.showToast) window.showToast('Failed to load maintenance records', 'error');
+        if (window.showToast) window.showToast('Failed to load maintenance records', 'error');
     }
 }
 
 function renderTable(data) {
     const table = document.getElementById("maintenanceTable");
+    if (!table) return;
     table.innerHTML = "";
-
     if (data.length === 0) {
-        table.innerHTML = `
-            <tr class="empty-row">
-                <td colspan="8">
-                    <div class="empty-state-content">
-                        <i class="bi bi-wrench-adjustable"></i>
-                        <p>No maintenance records found.</p>
-                    </div>
-                </td>
-            </tr>`;
+        table.innerHTML = `<tr class="empty-row"><td colspan="8"><div class="empty-state-content"><i class="bi bi-wrench-adjustable"></i><p>No maintenance records found.</p></div></td></tr>`;
         return;
     }
-
     data.forEach(m => {
-        let statusBadge = "badge-warning";
-        if (m.status === "Completed") statusBadge = "badge-success";
-        else if (m.status === "Pending") statusBadge = "badge-info";
-
-        let mDate = m.maintenance_date;
-        if(mDate && mDate.includes('T')) mDate = mDate.split('T')[0];
-
-        const customerDisplay = m.customer_name || m.full_name || 'Unknown Customer';
-
+        const statusBadge = m.status === "Completed" ? "badge-success" : m.status === "Cancelled" ? "badge-danger" : "badge-warning";
+        const mDate = m.maintenance_date?.toDate ? m.maintenance_date.toDate().toLocaleDateString('en-IN')
+                    : (m.maintenance_date ? String(m.maintenance_date).split('T')[0] : '-');
         table.innerHTML += `
         <tr>
-            <td class="id-column">#${m.id}</td>
-            <td style="font-weight: 500;">${customerDisplay}</td>
+            <td style="font-weight:500;">${m.customer_name || '-'}</td>
             <td>${m.product_name || '-'}</td>
-            <td>${mDate || '-'}</td>
-            <td><span class="badge-status badge-primary">${m.maintenance_type || '-'}</span></td>
+            <td>${m.maintenance_type || '-'}</td>
+            <td>${mDate}</td>
             <td>${m.technician_name || 'Unassigned'}</td>
             <td><span class="badge-status ${statusBadge}">${m.status || 'Pending'}</span></td>
+            <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.remarks || '-'}</td>
             <td class="actions">
-                <button class="btn-icon edit" onclick="editMaintenance(${m.id})" title="Edit">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn-icon delete" onclick="deleteMaintenance(${m.id})" title="Delete">
-                    <i class="bi bi-trash"></i>
-                </button>
+                <button class="btn-icon edit" onclick="editMaintenance('${m.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-icon delete" onclick="deleteMaintenance('${m.id}')" title="Delete"><i class="bi bi-trash"></i></button>
             </td>
-        </tr>
-        `;
+        </tr>`;
     });
 }
 
-// Search functionality
 document.getElementById('searchInput')?.addEventListener('input', function(e) {
     const term = e.target.value.toLowerCase();
-    const filtered = allMaintenance.filter(m => 
+    renderTable(allMaintenance.filter(m =>
         (m.customer_name && m.customer_name.toLowerCase().includes(term)) ||
-        (m.full_name && m.full_name.toLowerCase().includes(term)) ||
-        (m.product_name && m.product_name.toLowerCase().includes(term)) ||
+        (m.technician_name && m.technician_name.toLowerCase().includes(term)) ||
         (m.status && m.status.toLowerCase().includes(term))
-    );
-    renderTable(filtered);
+    ));
 });
 
-async function loadDropdowns() {
-    try {
-        const custResponse = await fetch(window.API_BASE_URL + "/customers", {
-            headers: { Authorization: "Bearer " + token }
-        });
-        const custResult = await custResponse.json();
-        const customerSelect = document.getElementById("customer_id");
-        customerSelect.innerHTML = '<option value="">Select Customer</option>';
-        if(custResult.data) {
-            custResult.data.forEach(c => {
-                customerSelect.innerHTML += `<option value="${c.id}">${c.full_name}</option>`;
-            });
-        }
-    } catch(e) { console.error(e); }
-
-    try {
-        const prodResponse = await fetch(window.API_BASE_URL + "/products", {
-            headers: { Authorization: "Bearer " + token }
-        });
-        const prodResult = await prodResponse.json();
-        const productSelect = document.getElementById("product_id");
-        productSelect.innerHTML = '<option value="">Select Product</option>';
-        if(prodResult.data) {
-            prodResult.data.forEach(p => {
-                productSelect.innerHTML += `<option value="${p.id}">${p.product_name}</option>`;
-            });
-        }
-    } catch(e) { console.error(e); }
+async function _loadDropdowns() {
+    customersData = (await getDocs(collection(db, "customers"))).docs.map(d => ({ id: d.id, ...d.data() }));
+    const custSel = document.getElementById("customer_id");
+    if (custSel) {
+        custSel.innerHTML = '<option value="">Select Customer</option>';
+        customersData.forEach(c => { custSel.innerHTML += `<option value="${c.id}">${c.full_name}</option>`; });
+    }
+    productsData = (await getDocs(collection(db, "products"))).docs.map(d => ({ id: d.id, ...d.data() }));
+    const prodSel = document.getElementById("product_id");
+    if (prodSel) {
+        prodSel.innerHTML = '<option value="">Select Product</option>';
+        productsData.forEach(p => { prodSel.innerHTML += `<option value="${p.id}">${p.product_name}</option>`; });
+    }
 }
 
 loadMaintenance();
 
 async function showForm() {
-    document.getElementById("modalTitle").innerHTML = '<i class="bi bi-plus-circle"></i> Schedule Maintenance';
-    await loadDropdowns();
+    editingMaintenance = null;
+    document.getElementById("modalTitle").innerHTML = '<i class="bi bi-plus-circle"></i> Add Maintenance Record';
+    await _loadDropdowns();
     document.getElementById("maintenanceModal").style.display = "flex";
     document.body.style.overflow = "hidden";
-    
-    document.getElementById("maintenance_date").valueAsDate = new Date();
 }
 
 function closeModal() {
     document.getElementById("maintenanceModal").style.display = "none";
     document.body.style.overflow = "auto";
-    
-    document.getElementById("customer_id").value = "";
-    document.getElementById("product_id").value = "";
-    document.getElementById("maintenance_date").value = "";
-    document.getElementById("maintenance_type").value = "Routine";
-    document.getElementById("technician_name").value = "";
-    document.getElementById("status").value = "Pending";
-    document.getElementById("remarks").value = "";
-    
     editingMaintenance = null;
 }
 
 async function saveMaintenance() {
-    if (editingMaintenance) {
-        return updateMaintenance();
-    }
-
-    const customer_id = document.getElementById("customer_id").value;
-    const product_id = document.getElementById("product_id").value;
-    const m_date = document.getElementById("maintenance_date").value;
-    const m_type = document.getElementById("maintenance_type").value;
-
-    if (!customer_id || !product_id || !m_date || !m_type) {
-        if(window.showToast) window.showToast('Please fill all required fields', 'warning');
-        return;
-    }
-
-    const maintenance = {
-        customer_id: customer_id,
-        product_id: product_id,
-        maintenance_date: m_date,
-        maintenance_type: m_type,
-        technician_name: document.getElementById("technician_name").value,
-        status: document.getElementById("status").value,
-        remarks: document.getElementById("remarks").value
-    };
-
+    if (editingMaintenance) return updateMaintenance();
+    const customerId = document.getElementById("customer_id")?.value;
+    if (!customerId) { if (window.showToast) window.showToast('Please select a customer', 'warning'); return; }
+    const customer = customersData.find(c => c.id === customerId);
+    const productId = document.getElementById("product_id")?.value;
+    const product = productsData.find(p => p.id === productId);
     try {
-        const response = await fetch(window.API_BASE_URL + "/maintenance", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token
-            },
-            body: JSON.stringify(maintenance)
+        await createDoc("maintenance", {
+            customer_id:      customerId,
+            customer_name:    customer?.full_name || "",
+            product_id:       productId || null,
+            product_name:     product?.product_name || null,
+            maintenance_date: document.getElementById("maintenance_date")?.value || null,
+            maintenance_type: document.getElementById("maintenance_type")?.value?.trim() || "",
+            technician_name:  document.getElementById("technician_name")?.value?.trim() || null,
+            status:           document.getElementById("status")?.value || "Pending",
+            remarks:          document.getElementById("remarks")?.value?.trim() || null
         });
-
-        const result = await response.json();
-
-        if (result.success) {
-            if(window.showToast) window.showToast('Maintenance record saved successfully');
-            closeModal();
-            loadMaintenance();
-        } else {
-            if(window.showToast) window.showToast(result.message, 'error');
-        }
-    } catch(err) {
+        if (window.showToast) window.showToast('Maintenance record added');
+        closeModal();
+        loadMaintenance();
+    } catch (err) {
         console.error(err);
-        if(window.showToast) window.showToast('Connection error', 'error');
+        if (window.showToast) window.showToast('Error saving maintenance record', 'error');
     }
 }
 
 async function editMaintenance(id) {
     editingMaintenance = id;
     document.getElementById("modalTitle").innerHTML = '<i class="bi bi-pencil-square"></i> Edit Maintenance';
-    
-    await loadDropdowns();
-    
+    await _loadDropdowns();
     const m = allMaintenance.find(x => x.id === id);
-    if(!m) return;
-
-    document.getElementById("customer_id").value = m.customer_id;
-    document.getElementById("product_id").value = m.product_id;
-    
-    let md = m.maintenance_date;
-    if(md && md.includes('T')) md = md.split('T')[0];
-    document.getElementById("maintenance_date").value = md;
-    
-    document.getElementById("maintenance_type").value = m.maintenance_type || "Routine";
-    document.getElementById("technician_name").value = m.technician_name || "";
-    document.getElementById("status").value = m.status || "Pending";
-    document.getElementById("remarks").value = m.remarks || "";
-
+    if (!m) return;
+    if (document.getElementById("customer_id")) document.getElementById("customer_id").value = m.customer_id || "";
+    if (document.getElementById("product_id")) document.getElementById("product_id").value = m.product_id || "";
+    const mDateEl = document.getElementById("maintenance_date");
+    if (mDateEl) {
+        const d = m.maintenance_date?.toDate ? m.maintenance_date.toDate().toISOString().split('T')[0] : (m.maintenance_date || "");
+        mDateEl.value = d;
+    }
+    if (document.getElementById("maintenance_type")) document.getElementById("maintenance_type").value = m.maintenance_type || "";
+    if (document.getElementById("technician_name")) document.getElementById("technician_name").value = m.technician_name || "";
+    if (document.getElementById("status")) document.getElementById("status").value = m.status || "Pending";
+    if (document.getElementById("remarks")) document.getElementById("remarks").value = m.remarks || "";
     document.getElementById("maintenanceModal").style.display = "flex";
     document.body.style.overflow = "hidden";
 }
 
 async function updateMaintenance() {
-    const customer_id = document.getElementById("customer_id").value;
-    const product_id = document.getElementById("product_id").value;
-    const m_date = document.getElementById("maintenance_date").value;
-    const m_type = document.getElementById("maintenance_type").value;
-
-    if (!customer_id || !product_id || !m_date || !m_type) {
-        if(window.showToast) window.showToast('Please fill all required fields', 'warning');
-        return;
-    }
-
-    const maintenance = {
-        customer_id: customer_id,
-        product_id: product_id,
-        maintenance_date: m_date,
-        maintenance_type: m_type,
-        technician_name: document.getElementById("technician_name").value,
-        status: document.getElementById("status").value,
-        remarks: document.getElementById("remarks").value
-    };
-
+    const customerId = document.getElementById("customer_id")?.value;
+    const productId  = document.getElementById("product_id")?.value;
+    const customer   = customersData.find(c => c.id === customerId);
+    const product    = productsData.find(p => p.id === productId);
     try {
-        const response = await fetch(`${window.API_BASE_URL}/maintenance/${editingMaintenance}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token
-            },
-            body: JSON.stringify(maintenance)
+        await updateDocById("maintenance", editingMaintenance, {
+            customer_id:      customerId,
+            customer_name:    customer?.full_name || "",
+            product_id:       productId || null,
+            product_name:     product?.product_name || null,
+            maintenance_date: document.getElementById("maintenance_date")?.value || null,
+            maintenance_type: document.getElementById("maintenance_type")?.value?.trim() || "",
+            technician_name:  document.getElementById("technician_name")?.value?.trim() || null,
+            status:           document.getElementById("status")?.value || "Pending",
+            remarks:          document.getElementById("remarks")?.value?.trim() || null
         });
-
-        const result = await response.json();
-
-        if (result.success) {
-            if(window.showToast) window.showToast('Maintenance record updated successfully');
-            closeModal();
-            loadMaintenance();
-        } else {
-            if(window.showToast) window.showToast(result.message, 'error');
-        }
-    } catch(err) {
+        if (window.showToast) window.showToast('Maintenance record updated');
+        closeModal();
+        loadMaintenance();
+    } catch (err) {
         console.error(err);
-        if(window.showToast) window.showToast('Connection error', 'error');
+        if (window.showToast) window.showToast('Error updating maintenance record', 'error');
     }
 }
 
 async function deleteMaintenance(id) {
-    if (!confirm("Are you sure you want to delete this maintenance record?")) return;
-
+    if (!confirm("Delete this maintenance record?")) return;
     try {
-        const response = await fetch(`${window.API_BASE_URL}/maintenance/${id}`, {
-            method: "DELETE",
-            headers: { Authorization: "Bearer " + token }
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            if(window.showToast) window.showToast('Maintenance record deleted successfully');
-            loadMaintenance();
-        } else {
-            if(window.showToast) window.showToast(result.message, 'error');
-        }
-    } catch(err) {
+        await deleteDocById("maintenance", id);
+        if (window.showToast) window.showToast('Maintenance record deleted');
+        loadMaintenance();
+    } catch (err) {
         console.error(err);
-        if(window.showToast) window.showToast('Connection error', 'error');
+        if (window.showToast) window.showToast('Error deleting record', 'error');
     }
 }
+
+window.showForm = showForm;
+window.closeModal = closeModal;
+window.saveMaintenance = saveMaintenance;
+window.editMaintenance = editMaintenance;
+window.deleteMaintenance = deleteMaintenance;

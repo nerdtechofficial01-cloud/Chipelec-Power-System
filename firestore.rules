@@ -1,0 +1,235 @@
+// CHIPELEC POWER SYSTEM — Firestore Security Rules
+// =================================================
+// Phase 13: Security Rules
+//
+// HOW TO DEPLOY:
+//   Option A — Firebase Console:
+//     1. Open https://console.firebase.google.com/project/chipelec-power-system/firestore/rules
+//     2. Paste the contents of this file and click Publish.
+//
+//   Option B — Firebase CLI:
+//     1. npm install -g firebase-tools
+//     2. firebase login
+//     3. firebase init firestore   (select chipelec-power-system project)
+//     4. firebase deploy --only firestore:rules
+//
+// ROLE MODEL:
+//   - Admin   → has a document at /admins/{uid}
+//   - Customer → has a document at /customers/{uid}
+//   - Public  → not signed in (website visitors)
+//
+// IMPORTANT: Never use "allow read, write: if true" in production.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─────────────────────────────────────────────────────
+    //  HELPER FUNCTIONS
+    // ─────────────────────────────────────────────────────
+
+    // Is the request from a signed-in user (any role)?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Is the signed-in user an admin?
+    // Checks for the existence of an /admins/{uid} document.
+    function isAdmin() {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Is the signed-in user a registered customer?
+    // Checks for the existence of a /customers/{uid} document.
+    function isCustomer() {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/customers/$(request.auth.uid));
+    }
+
+    // Is the signed-in user the owner of the document being accessed?
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // Does the incoming write set customer_id to the caller's own UID?
+    // Prevents customers from creating records for other customers.
+    function isOwnCustomerId() {
+      return request.resource.data.customer_id == request.auth.uid;
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  ADMINS COLLECTION
+    //  • Admin can read and update their own profile.
+    //  • No customer or public access.
+    //  • Admin account creation is done via Firebase Console / Admin SDK only.
+    // ─────────────────────────────────────────────────────
+    match /admins/{uid} {
+      allow read:   if isAdmin() && isOwner(uid);
+      allow update: if isAdmin() && isOwner(uid);
+      // create / delete: restricted to Firebase Admin SDK (server-side)
+      allow create, delete: if false;
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  CUSTOMERS COLLECTION
+    //  • Admin: full read/write on all customers.
+    //  • Customer: read and update their own profile only.
+    //  • Public: no access.
+    //  • Customer account creation: allowed when the caller is creating
+    //    their OWN document (uid matches the document path).
+    // ─────────────────────────────────────────────────────
+    match /customers/{uid} {
+      allow read:   if isAdmin() || (isSignedIn() && isOwner(uid));
+      allow create: if isSignedIn() && isOwner(uid);          // self-registration
+      allow update: if isAdmin() || (isSignedIn() && isOwner(uid));
+      allow delete: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  BRANDS
+    //  • Admin: full CRUD.
+    //  • All others: no access (brands are only used inside products,
+    //    which are publicly readable with denormalised brand_name).
+    // ─────────────────────────────────────────────────────
+    match /brands/{brandId} {
+      allow read:  if isAdmin();
+      allow write: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  CATEGORIES
+    //  • Admin: full CRUD.
+    //  • All others: no access (same reasoning as brands).
+    // ─────────────────────────────────────────────────────
+    match /categories/{categoryId} {
+      allow read:  if isAdmin();
+      allow write: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  PRODUCTS
+    //  • Public read — the customer website shows products without login.
+    //  • Admin write only — customers and public cannot create/edit/delete.
+    // ─────────────────────────────────────────────────────
+    match /products/{productId} {
+      allow read:  if true;          // public — website product listing
+      allow write: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  ENQUIRIES
+    //  • Public create — anyone can submit an enquiry (no login needed).
+    //  • Admin: read, update (status), delete.
+    //  • Customers and public: cannot read enquiries.
+    //  Validation: full_name, phone, and message must be non-empty strings.
+    // ─────────────────────────────────────────────────────
+    match /enquiries/{enquiryId} {
+      allow create: if request.resource.data.full_name is string
+                    && request.resource.data.full_name.size() > 0
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() > 0
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() > 0;
+      allow read, update, delete: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  ORDERS
+    //  • Admin: full CRUD.
+    //  • Customer: read their own orders only.
+    //  • Public: no access.
+    // ─────────────────────────────────────────────────────
+    match /orders/{orderId} {
+      allow read:             if isAdmin() ||
+                                 (isCustomer() && resource.data.customer_id == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  SALES
+    //  • Admin only — sales records are internal data.
+    // ─────────────────────────────────────────────────────
+    match /sales/{saleId} {
+      allow read, write: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  INSTALLATIONS
+    //  • Admin: full CRUD (read all, update any, delete any).
+    //  • Customer: read their own; create for themselves only.
+    //  • Public: no access.
+    // ─────────────────────────────────────────────────────
+    match /installations/{installationId} {
+      allow read: if isAdmin() ||
+                     (isCustomer() && resource.data.customer_id == request.auth.uid);
+      allow create: if isCustomer() && isOwnCustomerId();
+      allow update, delete: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  MAINTENANCE
+    //  • Admin only — maintenance records are managed by staff.
+    // ─────────────────────────────────────────────────────
+    match /maintenance/{maintenanceId} {
+      allow read, write: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  SERVICE REQUESTS
+    //  • Admin: full CRUD.
+    //  • Customer: read their own; create for themselves only.
+    //  • Public: no access.
+    // ─────────────────────────────────────────────────────
+    match /service_requests/{srId} {
+      allow read: if isAdmin() ||
+                     (isCustomer() && resource.data.customer_id == request.auth.uid);
+      allow create: if isCustomer() && isOwnCustomerId();
+      allow update, delete: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  SERVICES  (admin-managed service records — separate from service_requests)
+    //  • Admin only.
+    // ─────────────────────────────────────────────────────
+    match /services/{serviceId} {
+      allow read, write: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  QUOTATIONS
+    //  • Admin: full CRUD.
+    //  • Customer: read their own quotations only.
+    //  • Customers cannot create or modify quotations (admin-generated).
+    // ─────────────────────────────────────────────────────
+    match /quotations/{quotationId} {
+      allow read: if isAdmin() ||
+                     (isCustomer() && resource.data.customer_id == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // ─────────────────────────────────────────────────────
+    //  CATCH-ALL: deny everything else
+    //  (Any collection not explicitly listed above is blocked.)
+    // ─────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

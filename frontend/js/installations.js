@@ -1,286 +1,199 @@
-// Note: token is handled in auth.js
+// Phase 10 — installations.js migrated to Firestore
+import { fetchAll, createDoc, updateDocById, deleteDocById, db } from "./firebase-config.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
 let editingInstallation = null;
 let allInstallations = [];
+let customersData = [];
+let productsData = [];
 
 async function loadInstallations() {
     try {
-        const response = await fetch(window.API_BASE_URL + "/installations", {
-            headers: { Authorization: "Bearer " + token }
-        });
-
-        const result = await response.json();
-        allInstallations = result.data || [];
+        allInstallations = await fetchAll("installations");
         renderTable(allInstallations);
     } catch (err) {
         console.error(err);
-        if(window.showToast) window.showToast('Failed to load installations', 'error');
+        if (window.showToast) window.showToast('Failed to load installations', 'error');
     }
 }
 
 function renderTable(data) {
     const table = document.getElementById("installationTable");
+    if (!table) return;
     table.innerHTML = "";
-
     if (data.length === 0) {
-        table.innerHTML = `
-            <tr class="empty-row">
-                <td colspan="6">
-                    <div class="empty-state-content">
-                        <i class="bi bi-tools"></i>
-                        <p>No installations found.</p>
-                    </div>
-                </td>
-            </tr>`;
+        table.innerHTML = `<tr class="empty-row"><td colspan="7"><div class="empty-state-content"><i class="bi bi-tools"></i><p>No installations found.</p></div></td></tr>`;
         return;
     }
-
     data.forEach(inst => {
-        let statusBadge = "badge-info";
-        if (inst.status === "Completed") statusBadge = "badge-success";
-        else if (inst.status === "Scheduled") statusBadge = "badge-primary";
-        else if (inst.status === "Cancelled") statusBadge = "badge-error";
-
-        // Handle date formatting
-        let instDate = inst.installation_date;
-        if(instDate && instDate.includes('T')) {
-            instDate = instDate.split('T')[0];
-        }
-
-        // Bug Fix: Customer Name not showing. API might return customer_name or full_name
-        const customerDisplay = inst.customer_name || inst.full_name || 'Unknown Customer';
+        const statusBadge = inst.installation_status === "Completed" ? "badge-success" :
+                            inst.installation_status === "Scheduled"  ? "badge-primary" :
+                            inst.installation_status === "Cancelled"  ? "badge-danger"  : "badge-info";
+        const instDate = inst.installation_date?.toDate
+            ? inst.installation_date.toDate().toLocaleDateString('en-IN')
+            : (inst.installation_date ? String(inst.installation_date).split('T')[0] : '-');
+        const customerDisplay = inst.customer_name || '-';
 
         table.innerHTML += `
         <tr>
-            <td style="font-weight: 500;">${customerDisplay}</td>
+            <td style="font-weight:500;">${customerDisplay}</td>
             <td>${inst.product_name || '-'}</td>
-            <td>${instDate || '-'}</td>
+            <td>${instDate}</td>
             <td>${inst.technician_name || 'Unassigned'}</td>
-            <td><span class="badge-status ${statusBadge}">${inst.status || 'Scheduled'}</span></td>
+            <td>${inst.installation_address || '-'}</td>
+            <td><span class="badge-status ${statusBadge}">${inst.installation_status || 'Pending'}</span></td>
             <td class="actions">
-                <button class="btn-icon edit" onclick="editInstallation(${inst.id})" title="Edit">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn-icon delete" onclick="deleteInstallation(${inst.id})" title="Delete">
-                    <i class="bi bi-trash"></i>
-                </button>
+                <button class="btn-icon edit" onclick="editInstallation('${inst.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-icon delete" onclick="deleteInstallation('${inst.id}')" title="Delete"><i class="bi bi-trash"></i></button>
             </td>
-        </tr>
-        `;
+        </tr>`;
     });
 }
 
-// Search functionality
 document.getElementById('searchInput')?.addEventListener('input', function(e) {
     const term = e.target.value.toLowerCase();
-    const filtered = allInstallations.filter(i => 
+    renderTable(allInstallations.filter(i =>
         (i.customer_name && i.customer_name.toLowerCase().includes(term)) ||
-        (i.full_name && i.full_name.toLowerCase().includes(term)) ||
         (i.product_name && i.product_name.toLowerCase().includes(term)) ||
         (i.technician_name && i.technician_name.toLowerCase().includes(term)) ||
-        (i.status && i.status.toLowerCase().includes(term))
-    );
-    renderTable(filtered);
+        (i.installation_status && i.installation_status.toLowerCase().includes(term))
+    ));
 });
 
-async function loadDropdowns() {
-    try {
-        const custResponse = await fetch(window.API_BASE_URL + "/customers", {
-            headers: { Authorization: "Bearer " + token }
-        });
-        const custResult = await custResponse.json();
-        const customerSelect = document.getElementById("customer_id");
-        customerSelect.innerHTML = '<option value="">Select Customer</option>';
-        if(custResult.data) {
-            custResult.data.forEach(c => {
-                customerSelect.innerHTML += `<option value="${c.id}">${c.full_name}</option>`;
-            });
-        }
-    } catch(e) { console.error(e); }
-
-    try {
-        const prodResponse = await fetch(window.API_BASE_URL + "/products", {
-            headers: { Authorization: "Bearer " + token }
-        });
-        const prodResult = await prodResponse.json();
-        const productSelect = document.getElementById("product_id");
-        productSelect.innerHTML = '<option value="">Select Product</option>';
-        if(prodResult.data) {
-            prodResult.data.forEach(p => {
-                productSelect.innerHTML += `<option value="${p.id}">${p.product_name}</option>`;
-            });
-        }
-    } catch(e) { console.error(e); }
+async function _loadDropdowns() {
+    customersData = (await getDocs(collection(db, "customers"))).docs.map(d => ({ id: d.id, ...d.data() }));
+    const custSel = document.getElementById("customer_id");
+    if (custSel) {
+        custSel.innerHTML = '<option value="">Select Customer</option>';
+        customersData.forEach(c => { custSel.innerHTML += `<option value="${c.id}">${c.full_name}</option>`; });
+    }
+    productsData = (await getDocs(collection(db, "products"))).docs.map(d => ({ id: d.id, ...d.data() }));
+    const prodSel = document.getElementById("product_id");
+    if (prodSel) {
+        prodSel.innerHTML = '<option value="">Select Product</option>';
+        productsData.forEach(p => { prodSel.innerHTML += `<option value="${p.id}">${p.product_name}</option>`; });
+    }
 }
 
 loadInstallations();
 
 async function showForm() {
-    document.getElementById("modalTitle").innerHTML = '<i class="bi bi-plus-circle"></i> Schedule Installation';
-    await loadDropdowns();
+    editingInstallation = null;
+    document.getElementById("modalTitle").innerHTML = '<i class="bi bi-plus-circle"></i> Add Installation';
+    await _loadDropdowns();
     document.getElementById("installationModal").style.display = "flex";
     document.body.style.overflow = "hidden";
-    
-    // Set today's date by default
-    document.getElementById("installation_date").valueAsDate = new Date();
 }
 
 function closeModal() {
     document.getElementById("installationModal").style.display = "none";
     document.body.style.overflow = "auto";
-    
-    document.getElementById("customer_id").value = "";
-    document.getElementById("product_id").value = "";
-    document.getElementById("installation_date").value = "";
-    document.getElementById("technician_name").value = "";
-    document.getElementById("installation_status").value = "Scheduled";
-    document.getElementById("installation_address").value = "";
-    document.getElementById("remarks").value = "";
-    
     editingInstallation = null;
 }
 
 async function saveInstallation() {
-    if (editingInstallation) {
-        return updateInstallation();
-    }
+    if (editingInstallation) return updateInstallation();
+    const customerId  = document.getElementById("customer_id")?.value;
+    const productId   = document.getElementById("product_id")?.value;
+    const instDate    = document.getElementById("installation_date")?.value;
+    const techName    = document.getElementById("technician_name")?.value?.trim() || null;
+    const address     = document.getElementById("installation_address")?.value?.trim() || "";
+    const status      = document.getElementById("installation_status")?.value || "Pending";
+    const remarks     = document.getElementById("remarks")?.value?.trim() || null;
 
-    const customer_id = document.getElementById("customer_id").value;
-    const product_id = document.getElementById("product_id").value;
-    const inst_date = document.getElementById("installation_date").value;
-    const tech_name = document.getElementById("technician_name").value;
-    const address = document.getElementById("installation_address").value;
+    if (!customerId) { if (window.showToast) window.showToast('Please select a customer', 'warning'); return; }
 
-    if (!customer_id || !product_id || !inst_date || !tech_name || !address) {
-        if(window.showToast) window.showToast('Please fill all required fields', 'warning');
-        return;
-    }
-
-    const installation = {
-        customer_id: customer_id,
-        product_id: product_id,
-        installation_date: inst_date,
-        technician_name: tech_name,
-        status: document.getElementById("installation_status").value,
-        installation_address: address,
-        remarks: document.getElementById("remarks").value
-    };
+    const customer = customersData.find(c => c.id === customerId);
+    const product  = productsData.find(p => p.id === productId);
 
     try {
-        const response = await fetch(window.API_BASE_URL + "/installations", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token
-            },
-            body: JSON.stringify(installation)
+        await createDoc("installations", {
+            customer_id:          customerId,
+            customer_name:        customer?.full_name || "",
+            product_id:           productId || null,
+            product_name:         product?.product_name || null,
+            installation_date:    instDate || null,
+            technician_name:      techName,
+            installation_address: address,
+            installation_status:  status,
+            remarks:              remarks
         });
-
-        const result = await response.json();
-
-        if (result.success) {
-            if(window.showToast) window.showToast('Installation scheduled successfully');
-            closeModal();
-            loadInstallations();
-        } else {
-            if(window.showToast) window.showToast(result.message, 'error');
-        }
-    } catch(err) {
+        if (window.showToast) window.showToast('Installation added successfully');
+        closeModal();
+        loadInstallations();
+    } catch (err) {
         console.error(err);
-        if(window.showToast) window.showToast('Connection error', 'error');
+        if (window.showToast) window.showToast('Error adding installation', 'error');
     }
 }
 
 async function editInstallation(id) {
     editingInstallation = id;
     document.getElementById("modalTitle").innerHTML = '<i class="bi bi-pencil-square"></i> Edit Installation';
-    
-    await loadDropdowns();
-    
+    await _loadDropdowns();
     const inst = allInstallations.find(i => i.id === id);
-    if(!inst) return;
+    if (!inst) return;
 
-    document.getElementById("customer_id").value = inst.customer_id;
-    document.getElementById("product_id").value = inst.product_id;
-    
-    let d = inst.installation_date;
-    if(d && d.includes('T')) d = d.split('T')[0];
-    document.getElementById("installation_date").value = d;
-    
-    document.getElementById("technician_name").value = inst.technician_name || "";
-    document.getElementById("installation_status").value = inst.status || "Scheduled";
-    document.getElementById("installation_address").value = inst.installation_address || "";
-    document.getElementById("remarks").value = inst.remarks || "";
+    if (document.getElementById("customer_id")) document.getElementById("customer_id").value = inst.customer_id || "";
+    if (document.getElementById("product_id")) document.getElementById("product_id").value = inst.product_id || "";
+
+    const instDateEl = document.getElementById("installation_date");
+    if (instDateEl) {
+        const d = inst.installation_date?.toDate ? inst.installation_date.toDate().toISOString().split('T')[0]
+                                                  : (inst.installation_date || "");
+        instDateEl.value = d;
+    }
+    if (document.getElementById("technician_name")) document.getElementById("technician_name").value = inst.technician_name || "";
+    if (document.getElementById("installation_address")) document.getElementById("installation_address").value = inst.installation_address || "";
+    if (document.getElementById("installation_status")) document.getElementById("installation_status").value = inst.installation_status || "Pending";
+    if (document.getElementById("remarks")) document.getElementById("remarks").value = inst.remarks || "";
 
     document.getElementById("installationModal").style.display = "flex";
     document.body.style.overflow = "hidden";
 }
 
 async function updateInstallation() {
-    const customer_id = document.getElementById("customer_id").value;
-    const product_id = document.getElementById("product_id").value;
-    const inst_date = document.getElementById("installation_date").value;
-    const tech_name = document.getElementById("technician_name").value;
-    const address = document.getElementById("installation_address").value;
-
-    if (!customer_id || !product_id || !inst_date || !tech_name || !address) {
-        if(window.showToast) window.showToast('Please fill all required fields', 'warning');
-        return;
-    }
-
-    const installation = {
-        customer_id: customer_id,
-        product_id: product_id,
-        installation_date: inst_date,
-        technician_name: tech_name,
-        status: document.getElementById("installation_status").value,
-        installation_address: address,
-        remarks: document.getElementById("remarks").value
-    };
+    const customerId = document.getElementById("customer_id")?.value;
+    const productId  = document.getElementById("product_id")?.value;
+    const instDate   = document.getElementById("installation_date")?.value;
+    const customer   = customersData.find(c => c.id === customerId);
+    const product    = productsData.find(p => p.id === productId);
 
     try {
-        const response = await fetch(`${window.API_BASE_URL}/installations/${editingInstallation}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token
-            },
-            body: JSON.stringify(installation)
+        await updateDocById("installations", editingInstallation, {
+            customer_id:          customerId,
+            customer_name:        customer?.full_name || "",
+            product_id:           productId || null,
+            product_name:         product?.product_name || null,
+            installation_date:    instDate || null,
+            technician_name:      document.getElementById("technician_name")?.value?.trim() || null,
+            installation_address: document.getElementById("installation_address")?.value?.trim() || "",
+            installation_status:  document.getElementById("installation_status")?.value || "Pending",
+            remarks:              document.getElementById("remarks")?.value?.trim() || null
         });
-
-        const result = await response.json();
-
-        if (result.success) {
-            if(window.showToast) window.showToast('Installation updated successfully');
-            closeModal();
-            loadInstallations();
-        } else {
-            if(window.showToast) window.showToast(result.message, 'error');
-        }
-    } catch(err) {
+        if (window.showToast) window.showToast('Installation updated successfully');
+        closeModal();
+        loadInstallations();
+    } catch (err) {
         console.error(err);
-        if(window.showToast) window.showToast('Connection error', 'error');
+        if (window.showToast) window.showToast('Error updating installation', 'error');
     }
 }
 
 async function deleteInstallation(id) {
-    if (!confirm("Are you sure you want to delete this installation record?")) return;
-
+    if (!confirm("Delete this installation record?")) return;
     try {
-        const response = await fetch(`${window.API_BASE_URL}/installations/${id}`, {
-            method: "DELETE",
-            headers: { Authorization: "Bearer " + token }
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            if(window.showToast) window.showToast('Installation deleted successfully');
-            loadInstallations();
-        } else {
-            if(window.showToast) window.showToast(result.message, 'error');
-        }
-    } catch(err) {
+        await deleteDocById("installations", id);
+        if (window.showToast) window.showToast('Installation deleted');
+        loadInstallations();
+    } catch (err) {
         console.error(err);
-        if(window.showToast) window.showToast('Connection error', 'error');
+        if (window.showToast) window.showToast('Error deleting installation', 'error');
     }
 }
+
+window.showForm = showForm;
+window.closeModal = closeModal;
+window.saveInstallation = saveInstallation;
+window.editInstallation = editInstallation;
+window.deleteInstallation = deleteInstallation;

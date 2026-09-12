@@ -74,7 +74,7 @@
     </style>
 </head>
 <body>
-    <script src="js/api.js"></script>
+    <script type="module" src="js/api.js"></script>
     <script>
         const customer = getCustomerData();
     </script>
@@ -188,10 +188,9 @@
     </div>
 
     <script src="js/main.js"></script>
-    <script src="js/api.js"></script>
-    <script>
-        const API_BASE = "https://chipelec-power-system-production.up.railway.app/api";
-        
+    <script type="module" src="js/api.js"></script>
+    <script type="module">
+        import { submitEnquiry, getAllProducts } from './js/firebase-config.js';
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -203,11 +202,8 @@
                 document.getElementById('productLoadingBanner').style.display = 'flex';
 
                 try {
-                    // Fetch from all products list (which includes brand_name via JOIN)
-                    const res = await fetch(`${API_BASE}/products`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        const product = data.data && data.data.find(p => p.id == productId);
+                    const productsList = await getAllProducts();
+                    const product = productsList.find(p => p.id == productId);
 
                         if (product) {
                             // Set product_id hidden field
@@ -254,7 +250,6 @@
 
                             document.getElementById('productBanner').style.display = 'flex';
                         }
-                    }
                 } catch (e) {
                     console.warn('Could not load product info:', e);
                 } finally {
@@ -329,28 +324,18 @@
                 };
 
                 try {
-                    const res = await fetch(`${API_BASE}/enquiries`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+                    const enquiryId = await submitEnquiry(payload);
 
-                    const result = await res.json();
-
-                    if (result.success) {
-                        alertBox.style.display = 'block';
-                        alertBox.style.backgroundColor = '#dcfce7';
-                        alertBox.style.color = '#166534';
-                        alertBox.style.border = '1px solid #bbf7d0';
-                        alertBox.innerHTML = '<i class="fas fa-check-circle"></i> Your enquiry has been submitted successfully! Our team will contact you soon.';
-                        document.getElementById('enquiryForm').reset();
-                        document.getElementById('productBanner').style.display = 'none';
-                        document.getElementById('product_id').value = '';
-                        // Scroll to top of form
-                        alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    } else {
-                        throw new Error(result.message || 'Failed to submit enquiry');
-                    }
+                    alertBox.style.display = 'block';
+                    alertBox.style.backgroundColor = '#dcfce7';
+                    alertBox.style.color = '#166534';
+                    alertBox.style.border = '1px solid #bbf7d0';
+                    alertBox.innerHTML = '<i class="fas fa-check-circle"></i> Your enquiry has been submitted successfully! Our team will contact you soon.';
+                    document.getElementById('enquiryForm').reset();
+                    document.getElementById('productBanner').style.display = 'none';
+                    document.getElementById('product_id').value = '';
+                    // Scroll to top of form
+                    alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } catch (err) {
                     alertBox.style.display = 'block';
                     alertBox.style.backgroundColor = '#fee2e2';
