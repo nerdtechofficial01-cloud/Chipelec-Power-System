@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/api/:match*",
-      "destination": "https://chipelec-power-system-production.up.railway.app/api/:match*"
-    }
-  ]
-}
