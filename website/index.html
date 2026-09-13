@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHIPELEC Power System - Reliable Battery & Inverter Solutions</title>
     <meta name="description" content="CHIPELEC Power System provides reliable battery and inverter solutions for homes and businesses.">
+    <link rel="icon" type="image/png" href="images/chipelec-favicon.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .hero {
             background: linear-gradient(135deg, var(--bg-subtle-blue) 0%, #FFFFFF 100%);
-            padding: 120px 0 80px;
+            padding: 76px 0 70px;
             overflow: hidden;
             position: relative;
         }
@@ -25,30 +26,34 @@
         .hero-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            gap: 48px;
             align-items: center;
         }
         .hero-content h1 {
-            font-size: 3.8rem;
-            line-height: 1.1;
-            margin-bottom: 24px;
+            font-size: 3.6rem;
+            line-height: 1.08;
+            margin-bottom: 22px;
             color: var(--primary-color);
+            letter-spacing: -1.5px;
         }
         .hero-content p {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
+            line-height: 1.75;
             color: var(--text-muted);
-            margin-bottom: 40px;
-            max-width: 90%;
+            margin-bottom: 32px;
+            max-width: 600px;
         }
         .hero-image-wrapper {
             position: relative;
         }
         .hero-image-wrapper img {
-            width: 100%;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-hover);
-            position: relative;
-            z-index: 2;
+            width: min(100%, 480px);
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+            display: block;
+            border-radius: 0;
+            box-shadow: none;
         }
         .hero-shape {
             position: absolute;
@@ -135,13 +140,36 @@
             .solution-img { width: 100%; height: 250px; }
             .solution-content { width: 100%; }
         }
+
+        /* =========================================================
+        CHIPELEC HERO LOGO
+        ========================================================= */
+
+        .hero-image-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-image-wrapper img {
+            width: min(100%, 500px);
+            height: auto;
+            max-height: 360px;
+            object-fit: contain;
+            display: block;
+            border-radius: 0;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container d-flex justify-content-between align-items-center">
-            <a href="index.html" class="navbar-brand">CHIPELEC POWER SYSTEMS</a>
+            <a href="index.html" class="navbar-brand">
+                <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                <span>CHIPELEC POWER SYSTEMS</span>
+            </a>
             <div class="nav-links">
                 <a href="index.html" class="active">Home</a>
                 <a href="about.html">About</a>
@@ -150,9 +178,9 @@
                 <a href="contact.html">Contact</a>
                 <a href="login.html" class="btn btn-outline" style="padding: 8px 20px;">Login</a>
             </div>
-            <div class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('active')">
+            <button class="mobile-menu-btn">
                 <i class="fas fa-bars"></i>
-            </div>
+            </button>
         </div>
     </nav>
 
@@ -168,115 +196,336 @@
                 </div>
             </div>
             <div class="hero-image-wrapper animate-fade-in">
-                <div class="hero-shape"></div>
-                <img src="https://images.unsplash.com/photo-1620646233562-f2a316444d37?auto=format&fit=crop&q=80" alt="Power Systems">
-            </div>
+                    <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                </div>
         </div>
     </header>
 
     <!-- About Snippet / Features -->
-    <section class="py-8 bg-white">
-        <div class="container">
-            <div class="text-center mb-8 animate-fade-in-up">
-                <h2 style="font-size: 2.5rem; margin-bottom: 16px;">Why Choose CHIPELEC?</h2>
-                <p style="font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto;">
-                    We deliver uncompromised power backup solutions with a legacy of trust, innovation, and professional service.
-                </p>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-                <div class="feature-card animate-fade-in-up" style="animation-delay: 0.1s;">
-                    <div class="feature-icon-wrapper"><i class="fas fa-shield-alt"></i></div>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 12px;">Trusted Quality</h3>
-                    <p style="color: var(--text-muted);">Premium grade materials ensuring long-lasting performance, reliability, and peace of mind.</p>
-                </div>
-                <div class="feature-card animate-fade-in-up" style="animation-delay: 0.2s;">
-                    <div class="feature-icon-wrapper"><i class="fas fa-bolt"></i></div>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 12px;">Fast Installation</h3>
-                    <p style="color: var(--text-muted);">Professional and swift installation services by our team of certified and experienced engineers.</p>
-                </div>
-                <div class="feature-card animate-fade-in-up" style="animation-delay: 0.3s;">
-                    <div class="feature-icon-wrapper"><i class="fas fa-headset"></i></div>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 12px;">24/7 Support</h3>
-                    <p style="color: var(--text-muted);">Round the clock customer service to address your queries instantly and ensure smooth operation.</p>
-                </div>
-            </div>
+    <section class="features-section bg-white">
+    <div class="container">
+
+        <div class="section-heading text-center animate-fade-in-up">
+            <h2>Why Choose CHIPELEC?</h2>
+
+            <p>
+                Reliable power solutions backed by quality products,
+                professional installation, and dependable customer support.
+            </p>
         </div>
+
+        <div class="features-grid">
+                <div class="feature-card animate-fade-in-up" style="animation-delay: 0.1s;">
+    <div class="feature-icon-wrapper">
+        <i class="fas fa-shield-alt"></i>
+    </div>
+
+    <h3>Trusted Quality</h3>
+
+    <p>
+        Quality batteries and inverters selected for reliable performance,
+        durability, and dependable backup power.
+    </p>
+</div>
+
+
+<div class="feature-card animate-fade-in-up" style="animation-delay: 0.2s;">
+    <div class="feature-icon-wrapper">
+        <i class="fas fa-bolt"></i>
+    </div>
+
+    <h3>Professional Installation</h3>
+
+    <p>
+        Safe and professional installation by experienced technicians
+        to ensure your power system performs at its best.
+    </p>
+</div>
+
+
+<div class="feature-card animate-fade-in-up" style="animation-delay: 0.3s;">
+    <div class="feature-icon-wrapper">
+        <i class="fas fa-headset"></i>
+    </div>
+
+    <h3>Reliable Support</h3>
+
+    <p>
+        Dependable assistance for installation, maintenance, and
+        service whenever you need it.
+    </p>
+</div>
+        </div>
+    </div>
     </section>
 
     <!-- Featured Categories -->
-    <section class="py-8 bg-subtle-blue">
-        <div class="container">
-            <div class="text-center mb-8">
-                <h2 style="font-size: 2.5rem; margin-bottom: 16px;">Our Solutions</h2>
-                <p style="font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto;">
-                    Discover our range of advanced power solutions tailored for your specific needs.
-                </p>
-            </div>
-            <div class="solutions-grid">
-                <div class="solution-card">
-                    <img src="https://images.unsplash.com/photo-1550522197-2a62883017bb?auto=format&fit=crop&q=80" alt="Batteries" class="solution-img">
-                    <div class="solution-content">
-                        <span class="badge" style="background: #FFFBEB; color: var(--accent-color); width: max-content; margin-bottom: 16px;">Energy Storage</span>
-                        <h3 style="font-size: 1.8rem; margin-bottom: 12px;">Premium Batteries</h3>
-                        <p style="color: var(--text-muted); margin-bottom: 24px;">High-capacity tubular and flat plate batteries designed for extremely long backups and durability.</p>
-                        <a href="battery.html" class="btn btn-outline" style="width: max-content;">View Batteries <i class="fas fa-arrow-right ml-2"></i></a>
-                    </div>
-                </div>
-                <div class="solution-card">
-                    <img src="https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&q=80" alt="Inverters" class="solution-img">
-                    <div class="solution-content">
-                        <span class="badge" style="background: #EFF6FF; color: var(--accent-blue); width: max-content; margin-bottom: 16px;">Power Conversion</span>
-                        <h3 style="font-size: 1.8rem; margin-bottom: 12px;">Smart Inverters</h3>
-                        <p style="color: var(--text-muted); margin-bottom: 24px;">Pure sine wave inverters equipped with smart technology for seamless power transition.</p>
-                        <a href="inverter.html" class="btn btn-outline" style="width: max-content;">View Inverters <i class="fas fa-arrow-right ml-2"></i></a>
-                    </div>
-                </div>
-            </div>
+    <!-- =====================================================
+     OUR SOLUTIONS
+     ===================================================== -->
+
+<section class="solutions-section">
+
+    <div class="container">
+
+        <!-- Section Heading -->
+        <div class="section-heading text-center">
+
+            <span class="section-eyebrow">
+                POWER SOLUTIONS
+            </span>
+
+            <h2>Our Solutions</h2>
+
+            <p>
+                Reliable batteries and smart home inverters designed
+                to keep your home powered through every outage.
+            </p>
+
         </div>
-    </section>
+
+
+        <!-- Main Visual -->
+        <div class="solutions-showcase">
+
+            <img
+                src="images/chipelec-power-solutions.png"
+                alt="CHIPELEC battery and home inverter power solutions">
+
+        </div>
+
+
+        <!-- Solution Cards -->
+        <div class="solution-options">
+
+            <!-- Battery -->
+            <div class="solution-option">
+
+                <div class="solution-option-icon battery-icon">
+                    <i class="fas fa-car-battery"></i>
+                </div>
+
+                <div class="solution-option-content">
+
+                    <span class="solution-option-label">
+                        ENERGY STORAGE
+                    </span>
+
+                    <h3>Premium Batteries</h3>
+
+                    <p>
+                        Reliable tubular and advanced batteries
+                        designed for long-lasting backup power
+                        at home and office.
+                    </p>
+
+                    <a href="battery.html" class="solution-link">
+                        Explore Batteries
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- Inverter -->
+            <div class="solution-option">
+
+                <div class="solution-option-icon inverter-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+
+                <div class="solution-option-content">
+
+                    <span class="solution-option-label">
+                        POWER CONVERSION
+                    </span>
+
+                    <h3>Smart Home Inverters</h3>
+
+                    <p>
+                        Efficient inverter systems that provide
+                        seamless power continuity for your essential
+                        home appliances.
+                    </p>
+
+                    <a href="inverter.html" class="solution-link">
+                        Explore Inverters
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 
     <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h3 style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">CHIPELEC<span style="color: var(--accent-blue);">.</span></h3>
-                    <p>Reliable Battery & Inverter Solutions for Homes & Businesses.</p>
-                </div>
-                <div class="footer-col">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="products.html">Products</a></li>
-                        <li><a href="services.html">Services</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Customer Service</h3>
-                    <ul>
-                        <li><a href="installation.html">Book Installation</a></li>
-                        <li><a href="service-request.html">Raise Complaint</a></li>
-                        <li><a href="quotation.html">Request Quotation</a></li>
-                        <li><a href="login.html">Customer Login</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Contact Us</h3>
-                    <ul>
-                        <li><i class="fas fa-map-marker-alt" style="margin-right: 10px; color: var(--accent-blue);"></i>17, Gandhi Rd, Kamarajar Nagar, NGO Colony, Choolaimedu, Chennai, Greater Chennai, Tamil Nadu 600094</li>
-                        <li><i class="fas fa-phone" style="margin-right: 10px; color: var(--accent-blue);"></i>+91 98403 13242</li>
-                        <li><i class="fas fa-envelope" style="margin-right: 10px; color: var(--accent-blue);"></i> support@chipelec.com</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 CHIPELEC Power System. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <!-- =====================================================
+     FOOTER
+     ===================================================== -->
 
-    <script type="module" src="js/api.js"></script>
+<footer class="site-footer">
+
+    <div class="container">
+
+        <div class="footer-grid">
+
+            <!-- Brand -->
+            <div class="footer-col footer-brand">
+
+                <a href="index.html" class="footer-logo">
+
+                    <img
+                        src="images/chipelec-logo.png"
+                        alt="CHIPELEC Power Systems">
+
+                    <span>CHIPELEC POWER SYSTEMS</span>
+
+                </a>
+
+                <p>
+                    Reliable battery and inverter solutions for
+                    homes and businesses, backed by professional
+                    installation and dependable service.
+                </p>
+
+            </div>
+
+
+            <!-- Quick Links -->
+            <div class="footer-col">
+
+                <h3>Quick Links</h3>
+
+                <ul>
+                    <li>
+                        <a href="about.html">About Us</a>
+                    </li>
+
+                    <li>
+                        <a href="products.html">Products</a>
+                    </li>
+
+                    <li>
+                        <a href="services.html">Services</a>
+                    </li>
+
+                    <li>
+                        <a href="contact.html">Contact</a>
+                    </li>
+                </ul>
+
+            </div>
+
+
+            <!-- Customer Service -->
+            <div class="footer-col">
+
+                <h3>Customer Service</h3>
+
+                <ul>
+                    <li>
+                        <a href="installation.html">
+                            Book Installation
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="service-request.html">
+                            Raise Service Request
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="quotation.html">
+                            Request Quotation
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="login.html">
+                            Customer Login
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+
+
+            <!-- Contact -->
+            <div class="footer-col footer-contact">
+
+                <h3>Contact Us</h3>
+
+                <ul>
+
+                    <li>
+                        <i class="fas fa-map-marker-alt"></i>
+
+                        <span>
+                            17, Gandhi Rd, Kamarajar Nagar,
+                            NGO Colony, Choolaimedu,
+                            Chennai, Tamil Nadu 600094
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="fas fa-phone"></i>
+
+                        <a href="tel:+919840313242">
+                            +91 98403 13242
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-phone"></i>
+
+                        <a href="tel:+919444879070">
+                            +91 94448 79070
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+
+                        <a href="mailto:support@chipelec.com">
+                            support@chipelec.com
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+
+        <!-- Footer Bottom -->
+
+        <div class="footer-bottom">
+
+            <p>
+                Â© 2026 CHIPELEC Power System.
+                All rights reserved.
+            </p>
+
+            <p class="footer-tagline">
+                Powering a brighter tomorrow.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+    <script type="module" src="js/firebase-config.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
+

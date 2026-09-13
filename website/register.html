@@ -95,10 +95,11 @@
     </main>
 
 
-    <script type="module" src="js/api.js"></script>
-    <script>
+    <script type="module">
+        import { customerRegister, isCustomerSignedIn } from './js/firebase-config.js';
+
         // If already logged in, redirect
-        if (isCustomerLoggedIn()) {
+        if (isCustomerSignedIn()) {
             window.location.href = 'customer-dashboard.html';
         }
 
@@ -134,8 +135,8 @@
             registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
 
             try {
-                const response = await api.customerAuth.register({
-                    full_name, phone, email, password, address, city, state, pincode
+                await customerRegister(email, password, {
+                    full_name, phone, email, address, city, state, pincode
                 });
 
                 // Show success
@@ -153,7 +154,9 @@
                 alertBox.style.display = 'block';
                 alertBox.style.backgroundColor = '#fee2e2';
                 alertBox.style.color = '#991b1b';
-                alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + error.message;
+                let msg = error.message || 'Registration failed.';
+                if(msg.includes('auth/email-already-in-use')) msg = 'Email is already in use.';
+                alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + msg;
 
                 registerBtn.disabled = false;
                 registerBtn.innerHTML = 'Create Account';
@@ -162,3 +165,4 @@
     </script>
 </body>
 </html>
+

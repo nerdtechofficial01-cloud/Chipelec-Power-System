@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,17 +15,24 @@
         const customer = getCustomerData();
     </script>
 
-    <!-- Navbar -->
+        <!-- Navbar -->
     <nav class="navbar">
-        <div class="container">
-            <a href="index.html" class="navbar-brand">CHIPELEC<span>.</span></a>
-            <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('show')">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="index.html" class="navbar-brand">
+                <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                <span>CHIPELEC POWER SYSTEMS</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="products.html">Products</a>
+                <a href="services.html">Services</a>
+                <a href="contact.html">Contact</a>
+                <a href="login.html" class="btn btn-outline" style="padding: 8px 20px;">Login</a>
+            </div>
+            <button class="mobile-menu-btn">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="nav-links d-none d-md-flex">
-                <a href="#" class="d-flex align-items-center gap-2"><i class="fas fa-user-circle"></i> <span id="navCustomerName">Customer</span></a>
-                <a href="#" onclick="customerLogout()" class="btn btn-outline">Logout</a>
-            </div>
         </div>
     </nav>
 
@@ -201,3 +208,4 @@
     </script>
 </body>
 </html>
+

@@ -1,39 +1,24 @@
-﻿/**
- * CHIPELEC POWER SYSTEM - Admin Bootstrap Script
- * Run ONCE to create the first admin user in Firebase Auth
- * and their corresponding Firestore /admins/{uid} document.
- *
- * HOW TO RUN:
- *   cd backend
- *   node scripts/create-admin.js
- *
- * PREREQUISITES:
- *   - serviceAccountKey.json must be in backend/scripts/
- *   - firebase-admin must be installed (already done)
- */
+﻿"use strict";
 
-"use strict";
-
-const admin = require("firebase-admin");
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getAuth }             = require("firebase-admin/auth");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const serviceAccount = require("./serviceAccountKey.json");
 
-// CONFIGURE YOUR FIRST ADMIN HERE
 const ADMIN_EMAIL    = "admin@chipelec.com";
 const ADMIN_PASSWORD = "Admin@1234";
 const ADMIN_NAME     = "System Administrator";
 const ADMIN_ROLE     = "superadmin";
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+initializeApp({ credential: cert(serviceAccount) });
 
-const auth = admin.auth();
-const db   = admin.firestore();
+const auth = getAuth();
+const db   = getFirestore();
 
 async function main() {
-    console.log("=".repeat(50));
+    console.log("==================================================");
     console.log("CHIPELEC - Admin Bootstrap");
-    console.log("=".repeat(50));
+    console.log("==================================================");
 
     let uid;
 
@@ -60,18 +45,17 @@ async function main() {
         full_name:  ADMIN_NAME,
         email:      ADMIN_EMAIL,
         role:       ADMIN_ROLE,
-        createdAt:  admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt:  admin.firestore.FieldValue.serverTimestamp()
+        createdAt:  FieldValue.serverTimestamp(),
+        updatedAt:  FieldValue.serverTimestamp()
     }, { merge: true });
 
-    console.log("Firestore /admins/" + uid + " document created/updated.");
-    console.log("");
+    console.log("Firestore /admins/" + uid + " document created.");
+    console.log("==================================================");
     console.log("Admin bootstrap complete!");
     console.log("  Email:    " + ADMIN_EMAIL);
     console.log("  Password: " + ADMIN_PASSWORD);
-    console.log("  Role:     " + ADMIN_ROLE);
-    console.log("");
-    console.log("IMPORTANT: Log into the admin portal and change your password!");
+    console.log("==================================================");
+    console.log("IMPORTANT: Change your password after first login!");
 
     process.exit(0);
 }

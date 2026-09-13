@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -162,9 +162,9 @@
                     tr.innerHTML = `
                         <td>#QTE-${req.id}</td>
                         <td>${req.items_description || 'N/A'}</td>
-                        <td>₹${req.amount}</td>
-                        <td>₹${req.tax}</td>
-                        <td>₹${req.total_amount}</td>
+                        <td>â‚¹${req.amount}</td>
+                        <td>â‚¹${req.tax}</td>
+                        <td>â‚¹${req.total_amount}</td>
                         <td>${dateStr}</td>
                         <td><span class="badge ${badgeClass}">${req.status}</span></td>
                     `;
@@ -198,3 +198,4 @@
     </script>
 </body>
 </html>
+

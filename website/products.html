@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -65,10 +65,10 @@
                     
                     <select id="priceFilter" class="form-control">
                         <option value="">Any Price</option>
-                        <option value="0-5000">Under ₹5,000</option>
-                        <option value="5000-15000">₹5,000 - ₹15,000</option>
-                        <option value="15000-30000">₹15,000 - ₹30,000</option>
-                        <option value="30000+">Above ₹30,000</option>
+                        <option value="0-5000">Under â‚¹5,000</option>
+                        <option value="5000-15000">â‚¹5,000 - â‚¹15,000</option>
+                        <option value="15000-30000">â‚¹15,000 - â‚¹30,000</option>
+                        <option value="30000+">Above â‚¹30,000</option>
                     </select>
                     
                     <select id="availabilityFilter" class="form-control">
@@ -97,33 +97,55 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h3 style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">CHIPELEC<span style="color: var(--accent-blue);">.</span></h3>
-                    <p>Reliable Battery & Inverter Solutions for Homes & Businesses.</p>
-                </div>
-                <div class="footer-col">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="products.html">Products</a></li>
-                        <li><a href="services.html">Services</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
+        <!-- Footer -->
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col footer-brand">
+                <a href="index.html" class="footer-logo">
+                    <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                    <span>CHIPELEC POWER SYSTEMS</span>
+                </a>
+                <p>Reliable battery and inverter solutions for homes and businesses, backed by professional installation and dependable service.</p>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 CHIPELEC Power System. All rights reserved.</p>
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="installation.html">Book Installation</a></li>
+                    <li><a href="service-request.html">Raise Service Request</a></li>
+                    <li><a href="quotation.html">Request Quotation</a></li>
+                    <li><a href="login.html">Customer Login</a></li>
+                </ul>
+            </div>
+            <div class="footer-col footer-contact">
+                <h3>Contact Us</h3>
+                <ul>
+                    <li><i class="fas fa-map-marker-alt"></i><span>17, Gandhi Rd, Kamarajar Nagar, NGO Colony, Choolaimedu, Chennai, Tamil Nadu 600094</span></li>
+                    <li><i class="fas fa-phone"></i><a href="tel:+919840313242">+91 98403 13242</a></li>
+                    <li><i class="fas fa-phone"></i><a href="tel:+919444879070">+91 94448 79070</a></li>
+                    <li><i class="fas fa-envelope"></i><a href="mailto:support@chipelec.com">support@chipelec.com</a></li>
+                </ul>
             </div>
         </div>
-    </footer>
+        <div class="footer-bottom">
+            <p>© 2026 CHIPELEC Power System. All rights reserved.</p>
+            <p class="footer-tagline">Powering a brighter tomorrow.</p>
+        </div>
+    </div>
+</footer>
 
-    <script type="module" src="js/api.js"></script>
-    <script src="js/main.js"></script>
-    <script>
+        <script type="module">
+        import { getAllProducts } from './js/firebase-config.js';
+
         document.addEventListener('DOMContentLoaded', async () => {
             const productGrid = document.getElementById('productGrid');
             const errorMessage = document.getElementById('errorMessage');
@@ -136,16 +158,10 @@
             
             let allProducts = [];
 
-            // IMPORTANT: The backend /api/products requires authMiddleware!
-            // Wait, let's look closely at products.js. 
-            // router.get("/", authMiddleware, ...)
-            // Yes, GET / requires auth. We need to handle this. For the customer website, if it requires auth, we can only show mock data or an error if they are not logged in.
-            // But usually public products are public. Let's try fetching and fallback to mock if 401.
-
             async function fetchProducts() {
                 try {
-                    const products = await window.api.products.getAllProducts();
-                    return (products.data || []).filter(p => p.status !== 'Inactive');
+                    const products = await getAllProducts();
+                    return products.filter(p => p.status !== 'Inactive');
                 } catch (e) {
                     console.error("API Error fetching products:", e);
                     errorMessage.style.display = 'block';
@@ -165,12 +181,14 @@
                     let imgUrl = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20style%3D%22background%3A%23f3f4f6%22%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2224%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
                     if (p.image) {
                         const imgStr = String(p.image).trim();
-                        if (imgStr.startsWith('http://') || imgStr.startsWith('https://')) {
+                        if (imgStr.startsWith('data:image')) {
+                            imgUrl = imgStr;
+                        } else if (imgStr.startsWith('http://') || imgStr.startsWith('https://')) {
                             imgUrl = imgStr;
                         } else if (imgStr.includes('/')) {
                             imgUrl = imgStr.startsWith('/') ? imgStr : '/' + imgStr;
                         } else {
-                            imgUrl = API_BASE_URL.replace('/api', '') + '/uploads/' + imgStr;
+                            imgUrl = '/uploads/' + imgStr;
                         }
                     }
                     
@@ -180,28 +198,28 @@
 
                     const card = document.createElement('div');
                     card.className = 'product-card animate-fade-in-up';
-                    card.innerHTML = `
+                    card.innerHTML = \
                         <div class="product-image-wrapper">
-                            <span class="badge ${p.status === 'Active' ? 'badge-completed' : 'badge-default'}" style="position: absolute; top: 12px; right: 12px; z-index: 2;">${p.status === 'Active' ? 'In Stock' : p.status}</span>
-                            <img src="${imgUrl}" alt="${p.product_name}" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20style%3D%22background%3A%23f3f4f6%22%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2224%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';">
+                            <span class="badge \" style="position: absolute; top: 12px; right: 12px; z-index: 2;">\</span>
+                            <img src="\" alt="\" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20style%3D%22background%3A%23f3f4f6%22%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2224%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';">
                         </div>
                         <div class="product-card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="product-category" style="background: ${categoryBg}; color: ${categoryColor}; margin: 0;">${p.category_name || 'Uncategorized'}</span>
-                                <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">${p.brand_name || 'Generic'}</span>
+                                <span class="product-category" style="background: \; color: \; margin: 0;">\</span>
+                                <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">\</span>
                             </div>
-                            <h3 class="product-title">${p.product_name}</h3>
-                            <p class="text-muted" style="margin-bottom: 4px; font-size: 14px;"><strong>Model:</strong> ${p.model_number || 'N/A'}</p>
-                            <p class="text-muted" style="margin-bottom: 16px; font-size: 14px;"><strong>Capacity:</strong> ${p.capacity || 'N/A'} | <strong>Warranty:</strong> ${p.warranty || 'N/A'}</p>
+                            <h3 class="product-title">\</h3>
+                            <p class="text-muted" style="margin-bottom: 4px; font-size: 14px;"><strong>Model:</strong> \</p>
+                            <p class="text-muted" style="margin-bottom: 16px; font-size: 14px;"><strong>Capacity:</strong> \ | <strong>Warranty:</strong> \</p>
                             
-                            <div class="product-price">₹${parseFloat(p.price || 0).toLocaleString()}</div>
+                            <div class="product-price">₹\</div>
                             
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <a href="product-details.html?id=${p.id}" class="btn btn-secondary" style="padding: 10px; font-size: 14px;">Details</a>
-                                <a href="enquiry.html?product=${p.id}" class="btn btn-primary" style="padding: 10px; font-size: 14px;">Enquire</a>
+                                <a href="product-details.html?id=\" class="btn btn-secondary" style="padding: 10px; font-size: 14px;">Details</a>
+                                <a href="enquiry.html?product=\" class="btn btn-primary" style="padding: 10px; font-size: 14px;">Enquire</a>
                             </div>
                         </div>
-                    `;
+                    \;
                     productGrid.appendChild(card);
                 });
             }
@@ -253,7 +271,7 @@
                 } else if(sortVal === 'alpha') {
                     filtered.sort((a, b) => (a.product_name || '').localeCompare(b.product_name || ''));
                 } else if(sortVal === 'newest') {
-                    filtered.sort((a, b) => b.id - a.id);
+                    filtered.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
                 }
 
                 renderProducts(filtered);
@@ -262,7 +280,7 @@
             // Init
             allProducts = await fetchProducts();
             populateBrands(allProducts);
-            filterProducts(); // Apply initial sort/filter
+            filterProducts();
 
             searchInput.addEventListener('input', filterProducts);
             categoryFilter.addEventListener('change', filterProducts);
@@ -274,3 +292,5 @@
     </script>
 </body>
 </html>
+
+

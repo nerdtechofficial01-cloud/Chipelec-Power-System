@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,21 +9,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Navbar -->
+        <!-- Navbar -->
     <nav class="navbar">
         <div class="container d-flex justify-content-between align-items-center">
-            <a href="index.html" class="navbar-brand">CHIPELEC<span>.</span></a>
+            <a href="index.html" class="navbar-brand">
+                <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                <span>CHIPELEC POWER SYSTEMS</span>
+            </a>
             <div class="nav-links">
                 <a href="index.html">Home</a>
-                <a href="about.html" class="active">About</a>
+                <a href="about.html">About</a>
                 <a href="products.html">Products</a>
                 <a href="services.html">Services</a>
                 <a href="contact.html">Contact</a>
                 <a href="login.html" class="btn btn-outline" style="padding: 8px 20px;">Login</a>
             </div>
-            <div class="mobile-menu-btn">
+            <button class="mobile-menu-btn">
                 <i class="fas fa-bars"></i>
-            </div>
+            </button>
         </div>
     </nav>
 
@@ -56,29 +59,52 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h3>CHIPELEC.</h3>
-                    <p>Reliable Battery & Inverter Solutions for Homes & Businesses.</p>
-                </div>
-                <div class="footer-col">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="products.html">Products</a></li>
-                        <li><a href="services.html">Services</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
+        <!-- Footer -->
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col footer-brand">
+                <a href="index.html" class="footer-logo">
+                    <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                    <span>CHIPELEC POWER SYSTEMS</span>
+                </a>
+                <p>Reliable battery and inverter solutions for homes and businesses, backed by professional installation and dependable service.</p>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 CHIPELEC Power System. All rights reserved.</p>
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="installation.html">Book Installation</a></li>
+                    <li><a href="service-request.html">Raise Service Request</a></li>
+                    <li><a href="quotation.html">Request Quotation</a></li>
+                    <li><a href="login.html">Customer Login</a></li>
+                </ul>
+            </div>
+            <div class="footer-col footer-contact">
+                <h3>Contact Us</h3>
+                <ul>
+                    <li><i class="fas fa-map-marker-alt"></i><span>17, Gandhi Rd, Kamarajar Nagar, NGO Colony, Choolaimedu, Chennai, Tamil Nadu 600094</span></li>
+                    <li><i class="fas fa-phone"></i><a href="tel:+919840313242">+91 98403 13242</a></li>
+                    <li><i class="fas fa-phone"></i><a href="tel:+919444879070">+91 94448 79070</a></li>
+                    <li><i class="fas fa-envelope"></i><a href="mailto:support@chipelec.com">support@chipelec.com</a></li>
+                </ul>
             </div>
         </div>
-    </footer>
+        <div class="footer-bottom">
+            <p>© 2026 CHIPELEC Power System. All rights reserved.</p>
+            <p class="footer-tagline">Powering a brighter tomorrow.</p>
+        </div>
+    </div>
+</footer>
     <script src="js/main.js"></script>
 </body>
 </html>
+
