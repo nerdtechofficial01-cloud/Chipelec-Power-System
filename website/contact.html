@@ -1,102 +1,461 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Contact Us | CHIPELEC Power System</title>
+    <meta name="description" content="Contact CHIPELEC Power System for batteries, inverters, installation, maintenance and power solutions.">
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
+
+    <!-- Navbar -->
     <nav class="navbar">
         <div class="container d-flex justify-content-between align-items-center">
-            <a href="index.html" class="navbar-brand">CHIPELEC<span>.</span></a>
+
+            <a href="index.html" class="navbar-brand">
+                <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                <span>CHIPELEC POWER SYSTEMS</span>
+            </a>
+
             <div class="nav-links">
                 <a href="index.html">Home</a>
                 <a href="about.html">About</a>
                 <a href="products.html">Products</a>
                 <a href="services.html">Services</a>
                 <a href="contact.html" class="active">Contact</a>
-                <a href="login.html" class="btn btn-outline" style="padding: 8px 20px;">Login</a>
+                <a href="login.html" class="btn btn-outline">Login</a>
             </div>
-            <div class="mobile-menu-btn"><i class="fas fa-bars"></i></div>
+
+            <div class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </div>
+
         </div>
     </nav>
 
-    <header class="py-5 text-center" style="background-color: var(--primary-color); color: white;">
+
+    <!-- Contact Hero -->
+    <header class="contact-hero">
         <div class="container">
-            <h1 style="color: white; font-size: 2.5rem;">Contact Us</h1>
-            <p style="color: #e2e8f0; max-width: 600px; margin: 10px auto 0;">We're here to help. Reach out to us for any queries.</p>
+            <div class="contact-hero-content">
+
+                <span class="contact-eyebrow">GET IN TOUCH</span>
+
+                <h1>
+                    Let's Talk About<br>
+                    Your Power Needs.
+                </h1>
+
+                <p>
+                    Have a question about batteries, inverters, installation,
+                    or service? Our team is ready to help.
+                </p>
+
+            </div>
         </div>
     </header>
 
-    <main class="py-5" style="background-color: var(--bg-color);">
+
+    <!-- Contact Section -->
+    <main class="contact-section">
+
         <div class="container">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-                <div class="card p-4">
-                    <h3 style="color: var(--primary-color); margin-bottom: 20px;">Send us a message</h3>
-                        <div id="contactAlert" style="display: none; padding: 15px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-weight: 600;"></div>
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label class="form-label">Full Name *</label>
-                            <input type="text" id="contactName" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Phone Number *</label>
-                            <input type="tel" id="contactPhone" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" id="contactEmail" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Message *</label>
-                            <textarea id="contactMessage" class="form-control" rows="5" required></textarea>
-                        </div>
-                        <button type="submit" id="contactSubmit" class="btn btn-primary" style="width: 100%;">Send Message</button>
-                    </form>
-                </div>
-                <div>
-                    <div class="card p-4 mb-4">
-                        <h3 style="color: var(--primary-color); margin-bottom: 20px;">Contact Information</h3>
-                        <ul style="list-style: none; padding: 0;">
-                            <li style="margin-bottom: 15px; display: flex; gap: 15px; align-items: flex-start;"><i class="fas fa-map-marker-alt" style="color: var(--secondary-color); width: 20px; font-size: 1.2rem; margin-top: 4px;"></i> <div><strong>Address:</strong><br>17, Gandhi Rd, Kamarajar Nagar, NGO Colony, Choolaimedu, Chennai, Greater Chennai, Tamil Nadu 600094</div></li>
-                            <li style="margin-bottom: 15px; display: flex; gap: 15px; align-items: flex-start;"><i class="fas fa-phone" style="color: var(--secondary-color); width: 20px; font-size: 1.2rem; margin-top: 4px;"></i> <div><strong>Phone:</strong><br><a href="tel:+919876543210">+91 9840313242</a></div></li>
-                            <li style="margin-bottom: 15px; display: flex; gap: 15px; align-items: flex-start;"><i class="fab fa-whatsapp" style="color: #25D366; width: 20px; font-size: 1.2rem; margin-top: 4px;"></i> <div><strong>WhatsApp:</strong><br><a href="https://wa.me/919876543210" target="_blank">+91 9840313242</a></div></li>
-                            <li style="margin-bottom: 15px; display: flex; gap: 15px; align-items: flex-start;"><i class="fas fa-envelope" style="color: var(--secondary-color); width: 20px; font-size: 1.2rem; margin-top: 4px;"></i> <div><strong>Email:</strong><br><a href="mailto:support@chipelec.com">support@chipelec.com</a></div></li>
-                            <li style="margin-bottom: 0; display: flex; gap: 15px; align-items: flex-start;"><i class="fas fa-clock" style="color: var(--secondary-color); width: 20px; font-size: 1.2rem; margin-top: 4px;"></i> <div><strong>Working Hours:</strong><br>Mon - Sat: 9:00 AM - 7:00 PM<br>Sun: Closed</div></li>
-                        </ul>
+
+            <div class="contact-grid">
+
+                <!-- Contact Form -->
+                <section class="contact-form-card">
+
+                    <div class="contact-card-heading">
+                        <span class="contact-card-eyebrow">SEND A MESSAGE</span>
+
+                        <h2>How Can We Help?</h2>
+
+                        <p>
+                            Fill in your details and message below.
+                            We'll get back to you as soon as possible.
+                        </p>
                     </div>
-                    <div class="card overflow-hidden">
-                        <!-- Mock Map -->
-                        <div class="map-container">
-    <iframe
-        src="https://www.google.com/maps?q=17%2C%20Gandhi%20Rd%2C%20Kamarajar%20Nagar%2C%20NGO%20Colony%2C%20Choolaimedu%2C%20Chennai%2C%20Tamil%20Nadu%20600094&output=embed"
-        width="100%"
-        height="400"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
-</div>
-                </div>
+
+                    <div id="contactAlert" class="contact-alert" style="display: none;"></div>
+
+                    <form id="contactForm">
+
+                        <div class="contact-form-row">
+
+                            <div class="form-group">
+                                <label class="form-label" for="contactName">
+                                    Full Name *
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="contactName"
+                                    class="form-control"
+                                    placeholder="Enter your full name"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="contactPhone">
+                                    Phone Number *
+                                </label>
+
+                                <input
+                                    type="tel"
+                                    id="contactPhone"
+                                    class="form-control"
+                                    placeholder="Enter your phone number"
+                                    required
+                                >
+                            </div>
+
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="contactEmail">
+                                Email Address
+                            </label>
+
+                            <input
+                                type="email"
+                                id="contactEmail"
+                                class="form-control"
+                                placeholder="Enter your email address"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="contactMessage">
+                                Message *
+                            </label>
+
+                            <textarea
+                                id="contactMessage"
+                                class="form-control"
+                                rows="6"
+                                placeholder="Tell us how we can help..."
+                                required
+                            ></textarea>
+                        </div>
+
+                        <button
+                            type="submit"
+                            id="contactSubmit"
+                            class="btn btn-primary contact-submit-btn"
+                        >
+                            <span>Send Message</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+
+                    </form>
+
+                </section>
+
+
+                <!-- Contact Information -->
+                <section class="contact-info-column">
+
+                    <div class="contact-info-card">
+
+                        <div class="contact-card-heading">
+                            <span class="contact-card-eyebrow">CONTACT INFORMATION</span>
+
+                            <h2>We're Here to Help.</h2>
+
+                            <p>
+                                Reach out to us for product enquiries,
+                                installation, service, or general assistance.
+                            </p>
+                        </div>
+
+
+                        <div class="contact-info-list">
+
+                            <div class="contact-info-item">
+                                <div class="contact-info-icon">
+                                    <i class="fas fa-location-dot"></i>
+                                </div>
+
+                                <div class="contact-info-content">
+                                    <span>Address</span>
+                                    <p>
+                                        17, Gandhi Rd, Kamarajar Nagar,
+                                        NGO Colony, Choolaimedu,
+                                        Chennai, Tamil Nadu 600094
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="contact-info-item">
+                                <div class="contact-info-icon contact-whatsapp-icon">
+                                    <i class="fab fa-whatsapp"></i>
+                                </div>
+
+                                <div class="contact-info-content">
+                                    <span>WhatsApp</span>
+                                    <a
+                                        href="https://wa.me/919840313242"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        +91 98403 13242
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="contact-info-item">
+                                <div class="contact-info-icon contact-whatsapp-icon">
+                                    <i class="fab fa-whatsapp"></i>
+                                </div>
+
+                                <div class="contact-info-content">
+                                    <span>WhatsApp</span>
+                                    <a
+                                        href="https://wa.me/919444879070"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        +91 94448 79070
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="contact-info-item">
+                                <div class="contact-info-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+
+                                <div class="contact-info-content">
+                                    <span>Email</span>
+                                    <a href="mailto:support@chipelec.com">
+                                        support@chipelec.com
+                                    </a>
+                                </div>
+                            </div>
+
+
+                            <div class="contact-info-item contact-hours-item">
+                                <div class="contact-info-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+
+                                <div class="contact-info-content">
+                                    <span>Working Hours</span>
+                                    <p>
+                                        Mon - Sat: 9:00 AM - 7:00 PM<br>
+                                        Sun: Closed
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Map -->
+                    <div class="contact-map-card">
+
+                        <div class="contact-map-heading">
+                            <div>
+                                <span>FIND US</span>
+                                <h3>Our Location</h3>
+                            </div>
+
+                            <i class="fas fa-map-location-dot"></i>
+                        </div>
+
+                        <div class="contact-map">
+                            <iframe
+                                src="https://www.google.com/maps?q=17%2C%20Gandhi%20Rd%2C%20Kamarajar%20Nagar%2C%20NGO%20Colony%2C%20Choolaimedu%2C%20Chennai%2C%20Tamil%20Nadu%20600094&output=embed"
+                                width="100%"
+                                height="340"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+
+                    </div>
+
+                </section>
+
             </div>
+
         </div>
+
     </main>
 
-    <footer>
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col"><h3>CHIPELEC.</h3></div>
-                <div class="footer-col">
-                    <h3>Quick Links</h3>
-                    <ul><li><a href="about.html">About Us</a></li><li><a href="products.html">Products</a></li></ul>
-                </div>
+
+    <!-- Footer -->
+<footer class="site-footer">
+
+    <div class="container">
+
+        <div class="footer-grid">
+
+            <!-- Brand -->
+            <div class="footer-col footer-brand">
+
+                <a href="index.html" class="footer-logo">
+
+                    <img
+                        src="images/chipelec-logo.png"
+                        alt="CHIPELEC Power Systems">
+
+                    <span>CHIPELEC POWER SYSTEMS</span>
+
+                </a>
+
+                <p>
+                    Reliable battery and inverter solutions for
+                    homes and businesses, backed by professional
+                    installation and dependable service.
+                </p>
+
             </div>
-            <div class="footer-bottom"><p>&copy; 2026 CHIPELEC Power System. All rights reserved.</p></div>
+
+
+            <!-- Quick Links -->
+            <div class="footer-col">
+
+                <h3>Quick Links</h3>
+
+                <ul>
+                    <li>
+                        <a href="about.html">About Us</a>
+                    </li>
+
+                    <li>
+                        <a href="products.html">Products</a>
+                    </li>
+
+                    <li>
+                        <a href="services.html">Services</a>
+                    </li>
+
+                    <li>
+                        <a href="contact.html">Contact</a>
+                    </li>
+                </ul>
+
+            </div>
+
+
+            <!-- Customer Service -->
+            <div class="footer-col">
+
+                <h3>Customer Service</h3>
+
+                <ul>
+                    <li>
+                        <a href="installation.html">
+                            Book Installation
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="service-request.html">
+                            Raise Service Request
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="quotation.html">
+                            Request Quotation
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="login.html">
+                            Customer Login
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+
+
+            <!-- Contact -->
+            <div class="footer-col footer-contact">
+
+                <h3>Contact Us</h3>
+
+                <ul>
+
+                    <li>
+                        <i class="fas fa-map-marker-alt"></i>
+
+                        <span>
+                            17, Gandhi Rd, Kamarajar Nagar,
+                            NGO Colony, Choolaimedu,
+                            Chennai, Tamil Nadu 600094
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="fas fa-phone"></i>
+
+                        <a href="tel:+919840313242">
+                            +91 98403 13242
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-phone"></i>
+
+                        <a href="tel:+919444879070">
+                            +91 94448 79070
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+
+                        <a href="mailto:support@chipelec.com">
+                            support@chipelec.com
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
         </div>
-    </footer>
+
+
+        <!-- Footer Bottom -->
+
+        <div class="footer-bottom">
+
+            <p>
+                © 2026 CHIPELEC Power System.
+                All rights reserved.
+            </p>
+
+            <p class="footer-tagline">
+                Powering a brighter tomorrow.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+    
+
+    <!-- Contact Form Functionality -->
+    
+
+
     <script src="js/main.js"></script>
     <script>
         document.getElementById('contactForm').addEventListener('submit', async (e) => {
@@ -146,4 +505,3 @@
     </script>
 </body>
 </html>
-

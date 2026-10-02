@@ -1,149 +1,405 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Products | CHIPELEC Power System</title>
-    <meta name="description" content="Explore our wide range of batteries and inverters.">
+    <meta name="description" content="Explore CHIPELEC batteries and inverters for reliable home and business power backup.">
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
-    <!-- Navbar (Same as index.html but active class handled by main.js) -->
+
+    <!-- Navbar -->
     <nav class="navbar">
         <div class="container d-flex justify-content-between align-items-center">
-            <a href="index.html" class="navbar-brand">CHIPELEC<span>.</span></a>
+
+            <a href="index.html" class="navbar-brand">
+                <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                <span>CHIPELEC POWER SYSTEMS</span>
+            </a>
+
             <div class="nav-links">
                 <a href="index.html">Home</a>
                 <a href="about.html">About</a>
-                <a href="products.html">Products</a>
+                <a href="products.html" class="active">Products</a>
                 <a href="services.html">Services</a>
                 <a href="contact.html">Contact</a>
-                <a href="login.html" class="btn btn-outline" style="padding: 8px 20px;">Login</a>
+                <a href="login.html" class="btn btn-outline">Login</a>
             </div>
+
             <div class="mobile-menu-btn">
                 <i class="fas fa-bars"></i>
             </div>
+
         </div>
     </nav>
 
-    <!-- Page Header -->
-    <header class="py-8 bg-gradient-navy text-center">
-        <div class="container animate-fade-in-up">
-            <h1 style="font-size: 3.2rem; margin-bottom: 16px;">Our Products</h1>
-            <p style="font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto;">High-performance energy solutions tailored to keep your life uninterrupted.</p>
+
+    <!-- Products Hero -->
+    <header class="products-hero">
+        <div class="container">
+
+            <div class="products-hero-content">
+
+                <span class="products-eyebrow">POWER SOLUTIONS</span>
+
+                <h1>
+                    Reliable Power.<br>
+                    Built for Your Needs.
+                </h1>
+
+                <p>
+                    Explore our range of batteries and inverters designed
+                    to provide dependable backup power for homes and businesses.
+                </p>
+
+            </div>
+
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="py-8 bg-light">
+
+    <!-- Products Main -->
+    <main class="products-section">
+
         <div class="container">
-            
-            <!-- Filters & Sorting -->
-            <div class="card mb-6 animate-fade-in-up" style="animation-delay: 0.1s; padding: var(--space-4);">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: center;">
-                    <div style="grid-column: 1 / -1; display: flex; gap: 16px; flex-wrap: wrap;">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Search by product name, model, brand, category..." style="flex-grow: 1; min-width: 300px;">
-                        <select id="sortFilter" class="form-control" style="width: auto; min-width: 200px;">
-                            <option value="default">Sort By</option>
+
+            <!-- Filter Panel -->
+            <section class="products-filter-card">
+
+                <div class="products-filter-heading">
+
+                    <div>
+                        <span class="products-filter-eyebrow">FIND YOUR PRODUCT</span>
+                        <h2>Explore Our Products</h2>
+                    </div>
+
+                    <i class="fas fa-sliders"></i>
+
+                </div>
+
+
+                <!-- Search -->
+                <div class="products-search">
+
+                    <label for="searchInput">
+                        Search Products
+                    </label>
+
+                    <div class="products-search-input">
+
+                        <i class="fas fa-search"></i>
+
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="form-control"
+                            placeholder="Search by product name, model, brand or category..."
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Filters -->
+                <div class="products-filter-grid">
+
+                    <div class="products-filter-field">
+
+                        <label for="categoryFilter">
+                            Category
+                        </label>
+
+                        <select id="categoryFilter" class="form-control">
+
+                            <option value="">All Categories</option>
+                            <option value="Battery">Battery</option>
+                            <option value="Inverter">Inverter</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="products-filter-field">
+
+                        <label for="brandFilter">
+                            Brand
+                        </label>
+
+                        <select id="brandFilter" class="form-control">
+
+                            <option value="">All Brands</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="products-filter-field">
+
+                        <label for="priceFilter">
+                            Price Range
+                        </label>
+
+                        <select id="priceFilter" class="form-control">
+
+                            <option value="">Any Price</option>
+                            <option value="0-5000">Under ₹5,000</option>
+                            <option value="5000-15000">₹5,000 - ₹15,000</option>
+                            <option value="15000-30000">₹15,000 - ₹30,000</option>
+                            <option value="30000+">Above ₹30,000</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="products-filter-field">
+
+                        <label for="availabilityFilter">
+                            Availability
+                        </label>
+
+                        <select id="availabilityFilter" class="form-control">
+
+                            <option value="">All Products</option>
+                            <option value="Available">In Stock</option>
+                            <option value="Out of Stock">Out of Stock</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="products-filter-field products-sort-field">
+
+                        <label for="sortFilter">
+                            Sort By
+                        </label>
+
+                        <select id="sortFilter" class="form-control">
+
+                            <option value="default">Recommended</option>
                             <option value="price-low">Price: Low to High</option>
                             <option value="price-high">Price: High to Low</option>
                             <option value="alpha">Alphabetical</option>
                             <option value="newest">Newest First</option>
+
                         </select>
+
                     </div>
-                    
-                    <select id="categoryFilter" class="form-control">
-                        <option value="">All Categories</option>
-                        <option value="Battery">Battery</option>
-                        <option value="Inverter">Inverter</option>
-                    </select>
-                    
-                    <select id="brandFilter" class="form-control">
-                        <option value="">All Brands</option>
-                    </select>
-                    
-                    <select id="priceFilter" class="form-control">
-                        <option value="">Any Price</option>
-                        <option value="0-5000">Under â‚¹5,000</option>
-                        <option value="5000-15000">â‚¹5,000 - â‚¹15,000</option>
-                        <option value="15000-30000">â‚¹15,000 - â‚¹30,000</option>
-                        <option value="30000+">Above â‚¹30,000</option>
-                    </select>
-                    
-                    <select id="availabilityFilter" class="form-control">
-                        <option value="">Availability (All)</option>
-                        <option value="Active">In Stock</option>
-                        <option value="Out of Stock">Out of Stock</option>
-                    </select>
+
                 </div>
+
+            </section>
+
+
+            <!-- Error -->
+            <div
+                id="errorMessage"
+                class="products-error"
+                style="display: none;"
+            >
+
+                <i class="fas fa-exclamation-triangle"></i>
+
+                <h3 id="errorText">
+                    Failed to load products.
+                </h3>
+
             </div>
 
-            <!-- Error/Empty State -->
-            <div id="errorMessage" class="text-center" style="display: none; padding: 40px; color: var(--danger-color);">
-                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
-                <h3 id="errorText">Failed to load products.</h3>
-            </div>
 
             <!-- Product Grid -->
-            <div class="product-grid" id="productGrid">
-                <!-- Skeletons -->
+            <section
+                class="product-grid products-grid-refined"
+                id="productGrid"
+            >
+
+                <!-- Loading skeletons -->
                 <div class="skeleton"></div>
                 <div class="skeleton"></div>
                 <div class="skeleton"></div>
                 <div class="skeleton"></div>
-            </div>
+
+            </section>
 
         </div>
+
     </main>
 
-        <!-- Footer -->
+
+    <!-- Footer -->
 <footer class="site-footer">
+
     <div class="container">
+
         <div class="footer-grid">
+
+            <!-- Brand -->
             <div class="footer-col footer-brand">
+
                 <a href="index.html" class="footer-logo">
-                    <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+
+                    <img
+                        src="images/chipelec-logo.png"
+                        alt="CHIPELEC Power Systems">
+
                     <span>CHIPELEC POWER SYSTEMS</span>
+
                 </a>
-                <p>Reliable battery and inverter solutions for homes and businesses, backed by professional installation and dependable service.</p>
+
+                <p>
+                    Reliable battery and inverter solutions for
+                    homes and businesses, backed by professional
+                    installation and dependable service.
+                </p>
+
             </div>
+
+
+            <!-- Quick Links -->
             <div class="footer-col">
+
                 <h3>Quick Links</h3>
+
                 <ul>
-                    <li><a href="about.html">About Us</a></li>
-                    <li><a href="products.html">Products</a></li>
-                    <li><a href="services.html">Services</a></li>
-                    <li><a href="contact.html">Contact</a></li>
+                    <li>
+                        <a href="about.html">About Us</a>
+                    </li>
+
+                    <li>
+                        <a href="products.html">Products</a>
+                    </li>
+
+                    <li>
+                        <a href="services.html">Services</a>
+                    </li>
+
+                    <li>
+                        <a href="contact.html">Contact</a>
+                    </li>
                 </ul>
+
             </div>
+
+
+            <!-- Customer Service -->
             <div class="footer-col">
+
                 <h3>Customer Service</h3>
+
                 <ul>
-                    <li><a href="installation.html">Book Installation</a></li>
-                    <li><a href="service-request.html">Raise Service Request</a></li>
-                    <li><a href="quotation.html">Request Quotation</a></li>
-                    <li><a href="login.html">Customer Login</a></li>
+                    <li>
+                        <a href="installation.html">
+                            Book Installation
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="service-request.html">
+                            Raise Service Request
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="quotation.html">
+                            Request Quotation
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="login.html">
+                            Customer Login
+                        </a>
+                    </li>
                 </ul>
+
             </div>
+
+
+            <!-- Contact -->
             <div class="footer-col footer-contact">
+
                 <h3>Contact Us</h3>
+
                 <ul>
-                    <li><i class="fas fa-map-marker-alt"></i><span>17, Gandhi Rd, Kamarajar Nagar, NGO Colony, Choolaimedu, Chennai, Tamil Nadu 600094</span></li>
-                    <li><i class="fas fa-phone"></i><a href="tel:+919840313242">+91 98403 13242</a></li>
-                    <li><i class="fas fa-phone"></i><a href="tel:+919444879070">+91 94448 79070</a></li>
-                    <li><i class="fas fa-envelope"></i><a href="mailto:support@chipelec.com">support@chipelec.com</a></li>
+
+                    <li>
+                        <i class="fas fa-map-marker-alt"></i>
+
+                        <span>
+                            17, Gandhi Rd, Kamarajar Nagar,
+                            NGO Colony, Choolaimedu,
+                            Chennai, Tamil Nadu 600094
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="fas fa-phone"></i>
+
+                        <a href="tel:+919840313242">
+                            +91 98403 13242
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-phone"></i>
+
+                        <a href="tel:+919444879070">
+                            +91 94448 79070
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+
+                        <a href="mailto:support@chipelec.com">
+                            support@chipelec.com
+                        </a>
+                    </li>
+
                 </ul>
+
             </div>
+
         </div>
+
+
+        <!-- Footer Bottom -->
+
         <div class="footer-bottom">
-            <p>© 2026 CHIPELEC Power System. All rights reserved.</p>
-            <p class="footer-tagline">Powering a brighter tomorrow.</p>
+
+            <p>
+                © 2026 CHIPELEC Power System.
+                All rights reserved.
+            </p>
+
+            <p class="footer-tagline">
+                Powering a brighter tomorrow.
+            </p>
+
         </div>
+
     </div>
+
 </footer>
 
-        <script type="module">
+
+
+    
+    
+
+
+    <!-- Products Functionality -->
+    
+
+
+    <script type="module">
         import { getAllProducts } from './js/firebase-config.js';
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -292,5 +548,3 @@
     </script>
 </body>
 </html>
-
-
