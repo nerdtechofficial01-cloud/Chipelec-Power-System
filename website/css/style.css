@@ -898,3 +898,6 @@ footer::before {
     font-size: 24px;
   }
 }
+
+.navbar-brand img { height: 40px; width: auto; object-fit: contain; }
+.footer-logo img { height: 50px; width: auto; object-fit: contain; }
