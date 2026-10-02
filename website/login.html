@@ -4,27 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Login | CHIPELEC Power System</title>
+    <meta name="description" content="Sign in to your CHIPELEC customer portal.">
+    <link rel="icon" type="image/png" href="images/chipelec-favicon.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: var(--bg-color); display: flex; flex-direction: column; min-height: 100vh; }
-        .auth-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        .auth-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px; background: var(--bg-color); }
         .auth-card { width: 100%; max-width: 460px; }
-        .auth-logo { font-size: 28px; font-weight: 700; color: var(--primary-color); letter-spacing: -0.5px; }
-        .auth-logo span { color: var(--accent-color); }
         .auth-divider { border: none; border-top: 1px solid var(--border-color); margin: 24px 0; }
     </style>
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="navbar-brand">CHIPELEC<span>.</span></a>
+            <a href="index.html" class="navbar-brand">
+                <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                <span>CHIPELEC POWER SYSTEMS</span>
+            </a>
             <div class="nav-links">
                 <a href="index.html">Home</a>
                 <a href="products.html">Products</a>
+                <a href="services.html">Services</a>
                 <a href="contact.html">Contact</a>
-                <a href="register.html" class="btn btn-secondary">Register</a>
+                <a href="register.html" class="btn btn-outline">Register</a>
             </div>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
     </nav>
 
@@ -33,11 +41,15 @@
             <div class="card">
                 <div class="card-body">
                     <div class="text-center mb-6">
-                        <div class="auth-logo mb-4">CHIPELEC<span>.</span></div>
+                        <a href="index.html" style="display:inline-block; margin-bottom: 16px;">
+                            <img src="images/chipelec-logo.png" alt="CHIPELEC" style="height: 52px; object-fit: contain;">
+                        </a>
                         <h1 style="font-size: 24px; margin-bottom: 8px;">Welcome Back</h1>
                         <p style="color: var(--text-muted); font-size: 15px;">Sign in to your customer portal</p>
                     </div>
-                    
+
+                    <div id="alertBox" style="display: none; padding: 12px 16px; border-radius: 6px; font-size: 14px; margin-bottom: 20px; font-weight: 500;"></div>
+
                     <form id="loginForm">
                         <div class="form-group">
                             <label class="form-label" for="loginEmail">Email Address</label>
@@ -47,23 +59,17 @@
                             <label class="form-label" for="loginPassword">Password</label>
                             <input type="password" id="loginPassword" class="form-control" placeholder="Your password" required autocomplete="current-password">
                         </div>
-                        
-                        <div id="alertBox" style="display: none; padding: 12px 16px; border-radius: 6px; font-size: 14px; margin-bottom: 20px; font-weight: 500;"></div>
-                        
                         <button type="submit" id="loginBtn" class="btn btn-primary" style="width: 100%; height: 48px; font-size: 16px;">Sign In</button>
                     </form>
-                    
+
                     <hr class="auth-divider">
                     <p class="text-center" style="color: var(--text-muted); font-size: 14px;">
-                        Don't have an account? <a href="register.html" style="color: var(--secondary-color); font-weight: 600;">Register Now</a>
+                        Don't have an account? <a href="register.html" style="color: var(--accent-blue); font-weight: 600;">Register Now</a>
                     </p>
                 </div>
             </div>
         </div>
     </main>
-
-    
-    
 
     <script type="module">
         import { customerLogin, isCustomerSignedIn } from './js/firebase-config.js';
@@ -116,5 +122,6 @@
             }
         });
     </script>
+    <script src="js/main.js"></script>
 </body>
 </html>

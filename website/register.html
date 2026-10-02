@@ -4,27 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Registration | CHIPELEC Power System</title>
+    <meta name="description" content="Register a CHIPELEC customer account to access installations, service requests, and more.">
+    <link rel="icon" type="image/png" href="images/chipelec-favicon.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: var(--bg-color); display: flex; flex-direction: column; min-height: 100vh; }
-        .auth-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        .auth-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px; background: var(--bg-color); }
         .auth-card { width: 100%; max-width: 600px; }
-        .auth-logo { font-size: 28px; font-weight: 700; color: var(--primary-color); letter-spacing: -0.5px; }
-        .auth-logo span { color: var(--accent-color); }
         .auth-divider { border: none; border-top: 1px solid var(--border-color); margin: 24px 0; }
     </style>
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="navbar-brand">CHIPELEC<span>.</span></a>
+            <a href="index.html" class="navbar-brand">
+                <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
+                <span>CHIPELEC POWER SYSTEMS</span>
+            </a>
             <div class="nav-links">
                 <a href="index.html">Home</a>
                 <a href="products.html">Products</a>
+                <a href="services.html">Services</a>
                 <a href="contact.html">Contact</a>
-                <a href="login.html" class="btn btn-secondary">Sign In</a>
+                <a href="login.html" class="btn btn-outline">Sign In</a>
             </div>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
     </nav>
 
@@ -33,11 +41,13 @@
             <div class="card">
                 <div class="card-body">
                     <div class="text-center mb-6">
-                        <div class="auth-logo mb-4">CHIPELEC<span>.</span></div>
+                        <a href="index.html" style="display:inline-block; margin-bottom: 16px;">
+                            <img src="images/chipelec-logo.png" alt="CHIPELEC" style="height: 52px; object-fit: contain;">
+                        </a>
                         <h1 style="font-size: 24px; margin-bottom: 8px;">Create Account</h1>
                         <p style="color: var(--text-muted); font-size: 15px;">Register to access installations, service requests, and more</p>
                     </div>
-                    
+
                     <form id="registerForm">
                         <div class="d-flex gap-4" style="flex-wrap: wrap;">
                             <div class="form-group" style="flex: 1; min-width: 220px;">
@@ -84,19 +94,15 @@
 
                         <button type="submit" id="registerBtn" class="btn btn-primary" style="width: 100%; height: 48px; font-size: 16px;">Create Account</button>
                     </form>
-                    
-                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 24px 0;">
+
+                    <hr class="auth-divider">
                     <p class="text-center" style="color: var(--text-muted); font-size: 14px;">
-                        Already have an account? <a href="login.html" style="color: var(--secondary-color); font-weight: 600;">Sign In</a>
+                        Already have an account? <a href="login.html" style="color: var(--accent-blue); font-weight: 600;">Sign In</a>
                     </p>
                 </div>
             </div>
         </div>
     </main>
-
-
-    
-    
 
     <script type="module">
         import { customerRegister, isCustomerSignedIn } from './js/firebase-config.js';
@@ -130,10 +136,7 @@
                 return;
             }
 
-            // Reset alert
             alertBox.style.display = 'none';
-
-            // Loading state
             registerBtn.disabled = true;
             registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
 
@@ -142,13 +145,11 @@
                     full_name, phone, email, address, city, state, pincode
                 });
 
-                // Show success
                 alertBox.style.display = 'block';
                 alertBox.style.backgroundColor = '#dcfce7';
                 alertBox.style.color = '#166534';
                 alertBox.innerHTML = '<i class="fas fa-check-circle"></i> Registration successful! Redirecting to login...';
 
-                // Redirect to login after 2 seconds
                 setTimeout(() => {
                     window.location.href = 'login.html';
                 }, 2000);
@@ -166,5 +167,6 @@
             }
         });
     </script>
+    <script src="js/main.js"></script>
 </body>
 </html>
