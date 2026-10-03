@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -19,9 +19,9 @@
                 <a href="contact.html">Contact</a>
                 <a href="login.html" class="btn btn-outline" style="padding: 8px 20px;">Login</a>
             </div>
-            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+            <div class="mobile-menu-btn">
                 <i class="fas fa-bars"></i>
-            </button>
+            </div>
         </div>
     </nav>
 
@@ -69,11 +69,7 @@
         </div>
     </footer>
 
-    
-    
-    
-
-    <script type="module" src="js/api.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -172,7 +168,7 @@
                             <p style="font-size: 16px; color: var(--text-muted); margin-bottom: 24px;">Model: ${p.model_number || 'N/A'}</p>
                             
                             <div style="font-size: 32px; font-weight: 800; color: var(--primary-color); margin-bottom: 24px;">
-                                â‚¹${parseFloat(p.price || 0).toLocaleString()}
+                                ₹${parseFloat(p.price || 0).toLocaleString()}
                             </div>
                             
                             <div class="card mb-6" style="padding: var(--space-4); background: #fff;">
@@ -250,5 +246,4 @@
     </script>
 </body>
 </html>
-
 

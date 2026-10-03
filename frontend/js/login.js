@@ -1,6 +1,11 @@
-import { adminSignIn } from "./firebase-config.js";
+async function login() {
+    if (!window.API_BASE_URL) {
+        console.error("CRITICAL ERROR: window.API_BASE_URL is missing.");
+        document.getElementById("msg").innerHTML = '<div class="error-msg">Configuration Error: API URL not found.</div>';
+        return;
+    }
 
-window.login = async function() {
+
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const btn = document.getElementById("loginBtn");
@@ -17,29 +22,50 @@ window.login = async function() {
     msg.innerHTML = '';
 
     try {
-        const adminData = await adminSignIn(email, password);
 
-        // Store legacy values for compatibility during migration
-        localStorage.setItem("token", "firebase-token-placeholder");
-        localStorage.setItem("admin", JSON.stringify(adminData));
-        localStorage.setItem("firebaseAdmin", JSON.stringify(adminData));
+        const response = await fetch(window.API_BASE_URL + "/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email,
+                password
+            })
+        });
 
-        // Small delay for smooth transition
-        setTimeout(() => {
-            window.location.href = "dashboard.html";
-        }, 300);
+        // Safe JSON parsing — avoids crash if server returns HTML error page
+        let data;
+        const rawText = await response.text();
+        try {
+            data = JSON.parse(rawText);
+        } catch (parseErr) {
+            btn.classList.remove('btn-loading');
+            msg.innerHTML = `<div class="error-msg">Server error (HTTP ${response.status}). Please try again.</div>`;
+            console.error("Login: Server returned non-JSON response:", rawText.substring(0, 200));
+            return;
+        }
+
+        if (data.success) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("admin", JSON.stringify(data.admin));
+
+            // Small delay for smooth transition
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 300);
+
+        } else {
+            btn.classList.remove('btn-loading');
+            msg.innerHTML = `<div class="error-msg">${data.message || 'Invalid credentials'}</div>`;
+        }
 
     } catch (err) {
         console.error(err);
         btn.classList.remove('btn-loading');
-        // Clean up Firebase error messages for the user
-        let errorMsg = err.message || 'Invalid credentials';
-        if (errorMsg.includes('auth/invalid-credential')) {
-            errorMsg = "Invalid email or password.";
-        }
-        msg.innerHTML = `<div class="error-msg">${errorMsg}</div>`;
+        msg.innerHTML = '<div class="error-msg">Connection error. Please try again.</div>';
     }
-};
+}
 
 // Add enter key support
 document.addEventListener('keypress', function(e) {
@@ -48,7 +74,7 @@ document.addEventListener('keypress', function(e) {
         const passwordFocused = document.activeElement.id === 'password';
         
         if (emailFocused || passwordFocused) {
-            window.login();
+            login();
         }
     }
 });

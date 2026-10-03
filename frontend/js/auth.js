@@ -1,12 +1,13 @@
 /* ==========================================
-   CHIPELEC POWER SYSTEM — Auth Helpers (Firebase)
+   CHIPELEC POWER SYSTEM — Auth Helpers
    ========================================== */
 
-import { onAdminAuthStateChanged, adminSignOut, getCurrentAdmin } from "./firebase-config.js";
+// API_BASE_URL is defined in config.js (loaded before this file on every page)
 
 // =============================================
-// GLOBAL 401 HANDLER (Legacy fallback)
-// Still intercept API fetch 401s if legacy routes are called
+// GLOBAL 401 HANDLER
+// If any API call returns 401 (invalid/expired/stale token),
+// clear storage and redirect to login automatically.
 // =============================================
 const _originalFetch = window.fetch;
 window.fetch = async function(...args) {
@@ -17,33 +18,22 @@ window.fetch = async function(...args) {
             const data = await clone.json();
             if (data && data.message && (data.message === "Invalid Token" || data.message === "Access Denied. No Token Provided.")) {
                 console.warn("Auth: Received 401. Token is invalid or stale. Redirecting to login...");
-                adminSignOut();
+                localStorage.removeItem("token");
+                localStorage.removeItem("admin");
+                if (!window.location.href.includes("login.html")) {
+                    window.location.href = "login.html";
+                }
             }
         } catch(e) { /* non-JSON response, ignore */ }
     }
     return response;
 };
 
-// =============================================
-// FIREBASE AUTH STATE LISTENER
-// Redirect to login if user logs out or session expires.
-// =============================================
-if (!window.location.href.includes("login.html")) {
-    // Quick local check to prevent flash of content
-    const cachedAdmin = localStorage.getItem("firebaseAdmin");
-    if (!cachedAdmin) {
-        window.location.href = "login.html";
-    }
+const token = localStorage.getItem("token");
 
-    onAdminAuthStateChanged((user) => {
-        if (!user) {
-            console.warn("Auth: Firebase session expired or logged out. Redirecting...");
-            localStorage.removeItem("token");
-            localStorage.removeItem("admin");
-            localStorage.removeItem("firebaseAdmin");
-            window.location.href = "login.html";
-        }
-    });
+// Check if we need to redirect to login
+if (!token && !window.location.href.includes("login.html")) {
+    window.location = "login.html";
 }
 
 // Global Toast Notification Helper
@@ -86,14 +76,14 @@ window.showToast = function(message, type = 'success') {
 
 // Global Admin UI populator
 window.addEventListener('DOMContentLoaded', () => {
-    // Rely on locally cached admin data for instant UI render
-    const admin = JSON.parse(localStorage.getItem("admin") || localStorage.getItem("firebaseAdmin"));
+    const admin = JSON.parse(localStorage.getItem("admin"));
     
     if (admin) {
         const nameDisplay = document.getElementById("adminName");
         const topbarNameDisplay = document.getElementById("topbarAdminName");
         const roleDisplay = document.getElementById("adminRole");
         
+        // Handle admin name from full_name or username
         const displayName = admin.full_name || admin.username || "Admin";
         
         if (nameDisplay) nameDisplay.textContent = displayName;
@@ -108,7 +98,8 @@ window.addEventListener('DOMContentLoaded', () => {
 // Logout Helper
 window.logout = function(e) {
     if (e) e.preventDefault();
-    adminSignOut();
+    localStorage.clear();
+    window.location = "login.html";
 };
 
 // Global search basic handler for the topbar

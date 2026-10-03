@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -31,9 +31,10 @@
                 <a href="login.html" class="btn btn-outline">Login</a>
             </div>
 
-            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+            <div class="mobile-menu-btn">
                 <i class="fas fa-bars"></i>
-            </button>
+            </div>
+
         </div>
     </nav>
 
@@ -390,18 +391,14 @@
 
 
 
-    
-    
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
 
 
     <!-- Products Functionality -->
-    
-
-
-    <script type="module">
-        import { getAllProducts } from './js/firebase-config.js';
-
+    <script>
         document.addEventListener('DOMContentLoaded', async () => {
+
             const productGrid = document.getElementById('productGrid');
             const errorMessage = document.getElementById('errorMessage');
             const searchInput = document.getElementById('searchInput');
@@ -410,140 +407,466 @@
             const priceFilter = document.getElementById('priceFilter');
             const availabilityFilter = document.getElementById('availabilityFilter');
             const sortFilter = document.getElementById('sortFilter');
-            
+
             let allProducts = [];
 
+
             async function fetchProducts() {
+
                 try {
-                    const products = await getAllProducts();
-                    return products.filter(p => p.status !== 'Inactive');
+
+                    const products =
+                        await window.api.products.getAllProducts();
+
+                    return (products.data || [])
+                        .filter(p => p.status !== 'Inactive');
+
                 } catch (e) {
-                    console.error("API Error fetching products:", e);
+
+                    console.error(
+                        "API Error fetching products:",
+                        e
+                    );
+
                     errorMessage.style.display = 'block';
-                    document.getElementById('errorText').innerText = "Failed to load products from database.";
+
+                    document.getElementById('errorText').innerText =
+                        "Failed to load products from database.";
+
                     return [];
+
                 }
+
             }
+
 
             function renderProducts(products) {
+
                 productGrid.innerHTML = '';
-                if(products.length === 0) {
-                    productGrid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px;">No products found matching your criteria.</div>';
+
+                if (products.length === 0) {
+
+                    productGrid.innerHTML = `
+                        <div class="products-empty-state">
+                            <div class="products-empty-icon">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+
+                            <h3>No Products Found</h3>
+
+                            <p>
+                                No products match your current search or filters.
+                                Try adjusting your selection.
+                            </p>
+                        </div>
+                    `;
+
                     return;
+
                 }
+
 
                 products.forEach(p => {
-                    let imgUrl = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20style%3D%22background%3A%23f3f4f6%22%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2224%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
-                    if (p.image) {
-                        const imgStr = String(p.image).trim();
-                        if (imgStr.startsWith('data:image')) {
-                            imgUrl = imgStr;
-                        } else if (imgStr.startsWith('http://') || imgStr.startsWith('https://')) {
-                            imgUrl = imgStr;
-                        } else if (imgStr.includes('/')) {
-                            imgUrl = imgStr.startsWith('/') ? imgStr : '/' + imgStr;
-                        } else {
-                            imgUrl = '/uploads/' + imgStr;
-                        }
-                    }
-                    
-                    const catLower = (p.category_name || '').toLowerCase();
-                    const categoryBg = catLower === 'battery' ? '#FFFBEB' : (catLower === 'inverter' ? '#EFF6FF' : 'var(--bg-subtle-blue)');
-                    const categoryColor = catLower === 'battery' ? 'var(--accent-color)' : (catLower === 'inverter' ? 'var(--accent-blue)' : 'var(--accent-blue)');
 
-                    const card = document.createElement('div');
-                    card.className = 'product-card animate-fade-in-up';
-                    card.innerHTML = \
+                    let imgUrl =
+                        'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20style%3D%22background%3A%23f3f4f6%22%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2224%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
+
+                    if (p.image) {
+
+                        const imgStr =
+                            String(p.image).trim();
+
+                        if (
+                            imgStr.startsWith('http://') ||
+                            imgStr.startsWith('https://')
+                        ) {
+
+                            imgUrl = imgStr;
+
+                        } else if (imgStr.includes('/')) {
+
+                            imgUrl =
+                                imgStr.startsWith('/')
+                                    ? imgStr
+                                    : '/' + imgStr;
+
+                        } else {
+
+                            imgUrl =
+                                API_BASE_URL.replace('/api', '') +
+                                '/uploads/' +
+                                imgStr;
+
+                        }
+
+                    }
+
+
+                    const catLower =
+                        (p.category_name || '').toLowerCase();
+
+                    const categoryBg =
+                        catLower === 'battery'
+                            ? '#FFFBEB'
+                            : catLower === 'inverter'
+                                ? '#EFF6FF'
+                                : 'var(--bg-subtle-blue)';
+
+                    const categoryColor =
+                        catLower === 'battery'
+                            ? 'var(--accent-color)'
+                            : 'var(--accent-blue)';
+
+
+                    const isAvailable =
+                        p.status === 'Available';
+
+
+                    const card =
+                        document.createElement('article');
+
+                    card.className =
+                        'product-card animate-fade-in-up';
+
+
+                    card.innerHTML = `
+
                         <div class="product-image-wrapper">
-                            <span class="badge \" style="position: absolute; top: 12px; right: 12px; z-index: 2;">\</span>
-                            <img src="\" alt="\" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20style%3D%22background%3A%23f3f4f6%22%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2224%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';">
+
+                            <span
+                                class="product-stock-badge ${isAvailable ? 'in-stock' : 'out-of-stock'}"
+                            >
+                                <i class="fas ${isAvailable ? 'fa-check' : 'fa-circle-xmark'}"></i>
+                                ${isAvailable ? 'In Stock' : 'Out of Stock'}
+                            </span>
+
+                            <img
+                                src="${imgUrl}"
+                                alt="${p.product_name}"
+                                loading="lazy"
+                                onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20style%3D%22background%3A%23f3f4f6%22%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2224%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';"
+                            >
+
                         </div>
+
+
                         <div class="product-card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="product-category" style="background: \; color: \; margin: 0;">\</span>
-                                <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">\</span>
+
+                            <div class="product-card-top">
+
+                                <span
+                                    class="product-category"
+                                    style="background:${categoryBg}; color:${categoryColor};"
+                                >
+                                    ${p.category_name || 'Uncategorized'}
+                                </span>
+
+                                <span class="product-brand">
+                                    ${p.brand_name || 'Generic'}
+                                </span>
+
                             </div>
-                            <h3 class="product-title">\</h3>
-                            <p class="text-muted" style="margin-bottom: 4px; font-size: 14px;"><strong>Model:</strong> \</p>
-                            <p class="text-muted" style="margin-bottom: 16px; font-size: 14px;"><strong>Capacity:</strong> \ | <strong>Warranty:</strong> \</p>
-                            
-                            <div class="product-price">₹\</div>
-                            
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <a href="product-details.html?id=\" class="btn btn-secondary" style="padding: 10px; font-size: 14px;">Details</a>
-                                <a href="enquiry.html?product=\" class="btn btn-primary" style="padding: 10px; font-size: 14px;">Enquire</a>
+
+
+                            <h3 class="product-title">
+                                ${p.product_name}
+                            </h3>
+
+
+                            <div class="product-specs">
+
+                                <div class="product-spec">
+
+                                    <span>Model</span>
+
+                                    <strong>
+                                        ${p.model_number || 'N/A'}
+                                    </strong>
+
+                                </div>
+
+                                <div class="product-spec">
+
+                                    <span>Capacity</span>
+
+                                    <strong>
+                                        ${p.capacity || 'N/A'}
+                                    </strong>
+
+                                </div>
+
+                                <div class="product-spec">
+
+                                    <span>Warranty</span>
+
+                                    <strong>
+                                        ${p.warranty || 'N/A'}
+                                    </strong>
+
+                                </div>
+
                             </div>
+
+
+                            <div class="product-card-footer">
+
+                                <div class="product-price">
+                                    ₹${parseFloat(
+                                        p.price || 0
+                                    ).toLocaleString('en-IN')}
+                                </div>
+
+
+                                <div class="product-actions">
+
+                                    <a
+                                        href="product-details.html?id=${p.id}"
+                                        class="btn btn-secondary"
+                                    >
+                                        Details
+                                    </a>
+
+                                    <a
+                                        href="enquiry.html?product=${p.id}"
+                                        class="btn btn-primary"
+                                    >
+                                        Enquire
+                                    </a>
+
+                                </div>
+
+                            </div>
+
                         </div>
-                    \;
+
+                    `;
+
                     productGrid.appendChild(card);
+
                 });
+
             }
+
 
             function populateBrands(products) {
-                const brands = [...new Set(products.map(p => p.brand_name).filter(Boolean))].sort();
+
+                const brands = [
+                    ...new Set(
+                        products
+                            .map(p => p.brand_name)
+                            .filter(Boolean)
+                    )
+                ].sort();
+
                 brands.forEach(b => {
-                    const opt = document.createElement('option');
+
+                    const opt =
+                        document.createElement('option');
+
                     opt.value = b;
                     opt.textContent = b;
+
                     brandFilter.appendChild(opt);
+
                 });
+
             }
+
 
             function filterProducts() {
-                const search = searchInput.value.toLowerCase();
-                const category = categoryFilter.value;
-                const brand = brandFilter.value;
-                const priceRange = priceFilter.value;
-                const availability = availabilityFilter.value;
 
-                let filtered = allProducts.filter(p => {
-                    const matchesSearch = (p.product_name && p.product_name.toLowerCase().includes(search)) || 
-                                          (p.model_number && p.model_number.toLowerCase().includes(search)) ||
-                                          (p.brand_name && p.brand_name.toLowerCase().includes(search)) ||
-                                          (p.category_name && p.category_name.toLowerCase().includes(search));
-                    
-                    const matchesCat = category === "" || p.category_name === category;
-                    const matchesBrand = brand === "" || p.brand_name === brand;
-                    const matchesAvailability = availability === "" || p.status === availability;
-                    
-                    let matchesPrice = true;
-                    if(priceRange) {
-                        const price = parseFloat(p.price || 0);
-                        if(priceRange === '0-5000') matchesPrice = price < 5000;
-                        else if(priceRange === '5000-15000') matchesPrice = price >= 5000 && price <= 15000;
-                        else if(priceRange === '15000-30000') matchesPrice = price > 15000 && price <= 30000;
-                        else if(priceRange === '30000+') matchesPrice = price > 30000;
-                    }
-                    
-                    return matchesSearch && matchesCat && matchesBrand && matchesPrice && matchesAvailability;
-                });
-                
-                const sortVal = sortFilter.value;
-                if(sortVal === 'price-low') {
-                    filtered.sort((a, b) => parseFloat(a.price || 0) - parseFloat(b.price || 0));
-                } else if(sortVal === 'price-high') {
-                    filtered.sort((a, b) => parseFloat(b.price || 0) - parseFloat(a.price || 0));
-                } else if(sortVal === 'alpha') {
-                    filtered.sort((a, b) => (a.product_name || '').localeCompare(b.product_name || ''));
-                } else if(sortVal === 'newest') {
-                    filtered.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+                const search =
+                    searchInput.value.toLowerCase();
+
+                const category =
+                    categoryFilter.value;
+
+                const brand =
+                    brandFilter.value;
+
+                const priceRange =
+                    priceFilter.value;
+
+                const availability =
+                    availabilityFilter.value;
+
+
+                let filtered =
+                    allProducts.filter(p => {
+
+                        const matchesSearch =
+                            (p.product_name &&
+                                p.product_name
+                                    .toLowerCase()
+                                    .includes(search)) ||
+
+                            (p.model_number &&
+                                p.model_number
+                                    .toLowerCase()
+                                    .includes(search)) ||
+
+                            (p.brand_name &&
+                                p.brand_name
+                                    .toLowerCase()
+                                    .includes(search)) ||
+
+                            (p.category_name &&
+                                p.category_name
+                                    .toLowerCase()
+                                    .includes(search));
+
+
+                        const matchesCat =
+                            category === "" ||
+                            p.category_name === category;
+
+
+                        const matchesBrand =
+                            brand === "" ||
+                            p.brand_name === brand;
+
+
+                        const matchesAvailability =
+                            availability === "" ||
+                            p.status === availability;
+
+
+                        let matchesPrice = true;
+
+                        if (priceRange) {
+
+                            const price =
+                                parseFloat(p.price || 0);
+
+                            if (
+                                priceRange === '0-5000'
+                            ) {
+                                matchesPrice =
+                                    price < 5000;
+
+                            } else if (
+                                priceRange === '5000-15000'
+                            ) {
+                                matchesPrice =
+                                    price >= 5000 &&
+                                    price <= 15000;
+
+                            } else if (
+                                priceRange === '15000-30000'
+                            ) {
+                                matchesPrice =
+                                    price > 15000 &&
+                                    price <= 30000;
+
+                            } else if (
+                                priceRange === '30000+'
+                            ) {
+                                matchesPrice =
+                                    price > 30000;
+                            }
+
+                        }
+
+
+                        return (
+                            matchesSearch &&
+                            matchesCat &&
+                            matchesBrand &&
+                            matchesPrice &&
+                            matchesAvailability
+                        );
+
+                    });
+
+
+                const sortVal =
+                    sortFilter.value;
+
+
+                if (sortVal === 'price-low') {
+
+                    filtered.sort(
+                        (a, b) =>
+                            parseFloat(a.price || 0) -
+                            parseFloat(b.price || 0)
+                    );
+
+                } else if (sortVal === 'price-high') {
+
+                    filtered.sort(
+                        (a, b) =>
+                            parseFloat(b.price || 0) -
+                            parseFloat(a.price || 0)
+                    );
+
+                } else if (sortVal === 'alpha') {
+
+                    filtered.sort(
+                        (a, b) =>
+                            (a.product_name || '')
+                                .localeCompare(
+                                    b.product_name || ''
+                                )
+                    );
+
+                } else if (sortVal === 'newest') {
+
+                    filtered.sort(
+                        (a, b) => b.id - a.id
+                    );
+
                 }
 
+
                 renderProducts(filtered);
+
             }
 
-            // Init
-            allProducts = await fetchProducts();
+
+            /* Initialize */
+
+            allProducts =
+                await fetchProducts();
+
             populateBrands(allProducts);
+
             filterProducts();
 
-            searchInput.addEventListener('input', filterProducts);
-            categoryFilter.addEventListener('change', filterProducts);
-            brandFilter.addEventListener('change', filterProducts);
-            priceFilter.addEventListener('change', filterProducts);
-            availabilityFilter.addEventListener('change', filterProducts);
-            sortFilter.addEventListener('change', filterProducts);
+
+            /* Filters */
+
+            searchInput.addEventListener(
+                'input',
+                filterProducts
+            );
+
+            categoryFilter.addEventListener(
+                'change',
+                filterProducts
+            );
+
+            brandFilter.addEventListener(
+                'change',
+                filterProducts
+            );
+
+            priceFilter.addEventListener(
+                'change',
+                filterProducts
+            );
+
+            availabilityFilter.addEventListener(
+                'change',
+                filterProducts
+            );
+
+            sortFilter.addEventListener(
+                'change',
+                filterProducts
+            );
+
         });
     </script>
+
 </body>
 </html>

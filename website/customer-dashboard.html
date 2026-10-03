@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,15 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    
-    
+    <script src="js/api.js"></script>
+    <script>
+        requireCustomerLogin();
+        const customer = getCustomerData();
+    </script>
     
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="navbar-brand">
-                <img src="images/chipelec-logo.png" alt="CHIPELEC Power Systems">
-                <span>CHIPELEC POWER SYSTEMS</span>
-            </a>
+            <a href="index.html" class="navbar-brand">CHIPELEC<span>.</span></a>
             <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('show')">
                 <i class="fas fa-bars"></i>
             </button>
@@ -90,13 +90,6 @@
             </div>
         </main>
     </div>
-    
-
-    <script type="module" src="js/api.js"></script>
-    <script>
-        requireCustomerLogin();
-        const customer = getCustomerData();
-    </script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             if(customer) {
@@ -180,5 +173,3 @@
     </script>
 </body>
 </html>
-
-

@@ -1,41 +1,62 @@
-// Phase 7 — categories.js migrated to Firestore
-import { fetchAll, createDoc, updateDocById, deleteDocById } from "./firebase-config.js";
-
+// Note: token is handled in auth.js
 let editingCategory = null;
 let allCategories = [];
 
 async function loadCategories() {
     try {
-        allCategories = await fetchAll("categories");
+        const response = await fetch(window.API_BASE_URL + "/categories", {
+            headers: { Authorization: "Bearer " + token }
+        });
+
+        const result = await response.json();
+        allCategories = result.data || [];
         renderTable(allCategories);
     } catch (err) {
         console.error(err);
-        if (window.showToast) window.showToast('Failed to load categories', 'error');
+        if(window.showToast) window.showToast('Failed to load categories', 'error');
     }
 }
 
 function renderTable(data) {
     const table = document.getElementById("categoryTable");
     table.innerHTML = "";
+
     if (data.length === 0) {
-        table.innerHTML = `<tr class="empty-row"><td colspan="3"><div class="empty-state-content"><i class="bi bi-grid"></i><p>No categories found.</p></div></td></tr>`;
+        table.innerHTML = `
+            <tr class="empty-row">
+                <td colspan="3">
+                    <div class="empty-state-content">
+                        <i class="bi bi-collection"></i>
+                        <p>No categories found.</p>
+                    </div>
+                </td>
+            </tr>`;
         return;
     }
-    data.forEach(cat => {
+
+    data.forEach(category => {
         table.innerHTML += `
         <tr>
-            <td style="font-weight:500;">${cat.category_name}</td>
+            <td class="id-column">#${category.id}</td>
+            <td style="font-weight: 500;">${category.category_name}</td>
             <td class="actions">
-                <button class="btn-icon edit" onclick="editCategory('${cat.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
-                <button class="btn-icon delete" onclick="deleteCategory('${cat.id}')" title="Delete"><i class="bi bi-trash"></i></button>
+                <button class="btn-icon edit" onclick="editCategory(${category.id}, '${category.category_name}')" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn-icon delete" onclick="deleteCategory(${category.id})" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
             </td>
-        </tr>`;
+        </tr>
+        `;
     });
 }
 
+// Search functionality
 document.getElementById('searchInput')?.addEventListener('input', function(e) {
     const term = e.target.value.toLowerCase();
-    renderTable(allCategories.filter(c => c.category_name.toLowerCase().includes(term)));
+    const filtered = allCategories.filter(c => c.category_name.toLowerCase().includes(term));
+    renderTable(filtered);
 });
 
 loadCategories();
@@ -43,61 +64,95 @@ loadCategories();
 function showForm() {
     document.getElementById("modalTitle").innerHTML = '<i class="bi bi-plus-circle"></i> Add New Category';
     document.getElementById("categoryModal").style.display = "flex";
-    document.body.style.overflow = "hidden";
 }
 
 function closeModal() {
     document.getElementById("categoryModal").style.display = "none";
-    document.body.style.overflow = "auto";
     document.getElementById("category_name").value = "";
     editingCategory = null;
 }
 
 async function saveCategory() {
-    const name = document.getElementById("category_name").value.trim();
-    if (!name) { if (window.showToast) window.showToast('Category name is required', 'warning'); return; }
+    if (editingCategory) {
+        return updateCategory();
+    }
 
-    try {
-        if (editingCategory) {
-            await updateDocById("categories", editingCategory, { category_name: name });
-            if (window.showToast) window.showToast('Category updated successfully');
-        } else {
-            await createDoc("categories", { category_name: name });
-            if (window.showToast) window.showToast('Category added successfully');
-        }
+    const name = document.getElementById("category_name").value;
+    if (!name) {
+        if(window.showToast) window.showToast('Category name is required', 'warning');
+        return;
+    }
+
+    const category = { category_name: name };
+
+    const response = await fetch(window.API_BASE_URL + "/categories", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+        },
+        body: JSON.stringify(category)
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        if(window.showToast) window.showToast('Category added successfully');
         closeModal();
         loadCategories();
-    } catch (err) {
-        console.error(err);
-        if (window.showToast) window.showToast('Error saving category', 'error');
+    } else {
+        if(window.showToast) window.showToast(result.message, 'error');
     }
 }
 
-function editCategory(id) {
+function editCategory(id, name) {
     editingCategory = id;
     document.getElementById("modalTitle").innerHTML = '<i class="bi bi-pencil-square"></i> Edit Category';
-    const cat = allCategories.find(c => c.id === id);
-    if (!cat) return;
-    document.getElementById("category_name").value = cat.category_name;
+    document.getElementById("category_name").value = name;
     document.getElementById("categoryModal").style.display = "flex";
-    document.body.style.overflow = "hidden";
+}
+
+async function updateCategory() {
+    const name = document.getElementById("category_name").value;
+    if (!name) {
+        if(window.showToast) window.showToast('Category name is required', 'warning');
+        return;
+    }
+
+    const response = await fetch(`${window.API_BASE_URL}/categories/${editingCategory}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+        },
+        body: JSON.stringify({ category_name: name })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        if(window.showToast) window.showToast('Category updated successfully');
+        closeModal();
+        loadCategories();
+    } else {
+        if(window.showToast) window.showToast(result.message, 'error');
+    }
 }
 
 async function deleteCategory(id) {
-    const cat = allCategories.find(c => c.id === id);
-    if (!confirm(`Delete category "${cat?.category_name || id}"?`)) return;
-    try {
-        await deleteDocById("categories", id);
-        if (window.showToast) window.showToast('Category deleted successfully');
+    if (!confirm("Delete this category? This action cannot be undone.")) return;
+
+    const response = await fetch(`${window.API_BASE_URL}/categories/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        if(window.showToast) window.showToast('Category deleted successfully');
         loadCategories();
-    } catch (err) {
-        console.error(err);
-        if (window.showToast) window.showToast('Error deleting category', 'error');
+    } else {
+        if(window.showToast) window.showToast(result.message, 'error');
     }
 }
-
-window.saveCategory = saveCategory;
-window.editCategory = editCategory;
-window.deleteCategory = deleteCategory;
-window.showForm = showForm;
-window.closeModal = closeModal;
